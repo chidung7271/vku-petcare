@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7.0
+    container_name: petcare-mongodb
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_DATABASE: petcare
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - petcare-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PetCare NestJS Backend
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: petcare-backend
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - MONGODB_URI=mongodb://mongodb:27017/petcare
+      - JWT_ACCESS_SECRET=petcare-prod-access-secret-super-safe-2025
+      - JWT_ACCESS_EXPIRES_IN=1d
+      - JWT_REFRESH_SECRET=petcare-prod-refresh-secret-super-safe-2025
+      - JWT_REFRESH_EXPIRES_IN=7d
+      - AI_PROVIDER=mock
+      - LOCATION_PROVIDER=mock
+      - STORAGE_PROVIDER=local
+      - BASE_URL=http://localhost:3000
+      - CORS_ORIGIN=http://localhost:5173,http://localhost:3000
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    volumes:
+      - uploads_data:/app/uploads
+    networks:
+      - petcare-network
+
+volumes:
+  mongodb_data:
+  uploads_data:
+
+networks:
+  petcare-network:
+    driver: bridge

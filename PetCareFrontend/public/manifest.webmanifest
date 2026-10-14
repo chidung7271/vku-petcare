@@ -1,0 +1,41 @@
+{
+  "name": "PetCare - Trợ Lý Chăm Sóc Thú Cưng",
+  "short_name": "PetCare",
+  "description": "Sổ sức khỏe điện tử, theo dõi phát triển, cấp cứu thú y và cộng đồng nuôi thú cưng.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#149a8c",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Cấp Cứu SOS",
+      "short_name": "SOS",
+      "description": "Truy cập khẩn cấp trợ lý cấp cứu thú y",
+      "url": "/#emergency",
+      "icons": [{ "src": "/logo.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Sổ Sức Khỏe",
+      "short_name": "Sức Khỏe",
+      "description": "Xem sổ y bạ và lịch tiêm chủng",
+      "url": "/#health",
+      "icons": [{ "src": "/logo.png", "sizes": "192x192" }]
+    }
+  ],
+  "categories": ["medical", "lifestyle", "utilities"]
+}
