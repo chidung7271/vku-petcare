@@ -59,39 +59,13 @@ async function bootstrap() {
   const swaggerConfig = new DocumentBuilder()
     .setTitle('PetCare Assistant API')
     .setDescription(
-      'API Backend Production-Ready cho ứng dụng Trợ Lý Chăm Sóc Thú Cưng PetCare PWA. ' +
-        'Bao gồm quản lý hồ sơ thú cưng, sổ y bạ số, theo dõi tăng trưởng, cảnh báo khẩn cấp, AI chẩn đoán, bản đồ phòng khám, tìm thú cưng thất lạc và mạng xã hội thú cưng.',
+      'API Backend cho ứng dụng PetCare Assistant - [WBS 4.1.1] Khởi tạo API Server, Kết nối Database MongoDB và các Schema cốt lõi.',
     )
     .setVersion('1.0.0')
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        name: 'JWT',
-        description: 'Nhập access token JWT',
-        in: 'header',
-      },
-      'JWT-auth',
-    )
-    .addTag('auth', 'Đăng ký, Đăng nhập, Token Refresh, Đăng xuất')
+    .addTag('health', 'Kiểm tra trạng thái máy chủ & kết nối CSDL')
     .addTag('users', 'Quản lý thông tin tài khoản người dùng')
-    .addTag('pets', 'Quản lý hồ sơ thú cưng & xuất sổ y bạ')
-    .addTag('growth', 'Nhật ký cân nặng & album ảnh timeline trưởng thành')
-    .addTag('health-records', 'Sổ y bạ điện tử (tiêm phòng, khám bệnh, triệt sản, phẫu thuật, xét nghiệm)')
-    .addTag('vaccinations', 'Quản lý lịch tiêm chủng & sắp xếp lịch đến hẹn')
-    .addTag('medications', 'Theo dõi đơn thuốc, liều dùng và tiến độ uống thuốc')
-    .addTag('reminders', 'Lịch nhắc việc tự động & lặp lại định kỳ')
-    .addTag('emergency', 'Xử lý tình huống khẩn cấp, sơ cứu & an toàn thú y nghiêm ngặt')
-    .addTag('ai', 'Trợ lý AI sức khỏe thú cưng đa nhà cung cấp (Mock, Gemini, OpenAI)')
-    .addTag('locations', 'Tra cứu phòng khám thú y 24/7 & cửa hàng thú cưng gần nhất')
-    .addTag('lost-pets', 'Báo mất/tìm thấy thú cưng, tạo poster & mã QR tìm kiếm')
-    .addTag('knowledge', 'Kho cẩm nang chăm sóc thú cưng & xử lý vấn đề thường gặp')
-    .addTag('videos', 'Video hướng dẫn chăm sóc, sơ cứu và huấn luyện')
-    .addTag('community', 'Mạng xã hội người yêu thú cưng (Bài viết, Thả tim, Bình luận)')
-    .addTag('notifications', 'Hệ thống thông báo đẩy và nhắc việc trong ứng dụng')
-    .addTag('uploads', 'Tải lên hình ảnh và quản lý tệp media')
-    .addTag('health', 'Kiểm tra trạng thái máy chủ')
+    .addTag('pets', 'Quản lý hồ sơ thú cưng')
+    .addTag('locations', 'Danh bạ phòng khám và trạm xá thú y 24/7')
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
@@ -104,8 +78,8 @@ async function bootstrap() {
 
   app.enableShutdownHooks();
 
-  await app.listen(port);
-  logger.log(`🚀 PetCare Backend is running on: http://localhost:${port}/api/v1`);
+  await app.listen(port, '0.0.0.0');
+  logger.log(`🚀 PetCare Backend is running on port ${port}`);
   logger.log(`📖 Swagger API Docs available at: http://localhost:${port}/api/docs`);
   logger.log(`💓 Health check endpoint: http://localhost:${port}/health`);
 }

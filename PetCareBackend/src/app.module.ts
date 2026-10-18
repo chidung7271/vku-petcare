@@ -4,6 +4,9 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerModule } from '@nestjs/throttler';
 
 import { AppController } from './app.controller';
+import { UsersModule } from './users/users.module';
+import { PetsModule } from './pets/pets.module';
+import { LocationsModule } from './locations/locations.module';
 import { HttpLoggerMiddleware } from './common/middleware/http-logger.middleware';
 
 @Module({
@@ -14,7 +17,7 @@ import { HttpLoggerMiddleware } from './common/middleware/http-logger.middleware
       envFilePath: ['.env.local', '.env'],
     }),
 
-    // Database
+    // Database Connection
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -31,7 +34,10 @@ import { HttpLoggerMiddleware } from './common/middleware/http-logger.middleware
       },
     ]),
 
-    // Feature Modules will be added here
+    // Core Schemas / Modules for WBS 4.1.1 (Users, Pets, Clinics/Locations)
+    UsersModule,
+    PetsModule,
+    LocationsModule,
   ],
   controllers: [AppController],
   providers: [],

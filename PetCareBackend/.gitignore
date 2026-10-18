@@ -1,6 +1,5 @@
 # Dependencies
 node_modules/
-package-lock.json
 
 # Builds
 dist/
@@ -12,8 +11,8 @@ dist/
 .env.*.local
 
 # Uploads
-uploads/*
-!uploads/.gitkeep
+/uploads/*
+!/uploads/.gitkeep
 
 # Logs
 *.log
