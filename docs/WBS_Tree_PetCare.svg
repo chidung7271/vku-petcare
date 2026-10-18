@@ -1,0 +1,224 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 950" width="100%" height="100%" style="background:#0f172a; font-family:'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;">
+  <defs>
+    <linearGradient id="gradRoot" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <linearGradient id="gradL2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+    <linearGradient id="gradMust" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="115%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Title Banner -->
+  <rect x="50" y="25" width="1300" height="60" rx="12" fill="#1e293b" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="700" y="52" fill="#f8fafc" font-size="20" font-weight="700" text-anchor="middle" letter-spacing="1">CÂY CẤU TRÚC PHÂN RÃ CÔNG VIỆC WBS (DELIVERABLE-ORIENTED)</text>
+  <text x="700" y="73" fill="#94a3b8" font-size="13" text-anchor="middle">Hệ thống Trợ lý Chăm sóc Thú cưng PetCare | Chuẩn PMBOK &amp; Phân loại MoSCoW (Khóa 60% MVP)</text>
+
+  <!-- Root Node -->
+  <g transform="translate(475, 110)" filter="url(#shadow)">
+    <rect width="450" height="50" rx="10" fill="url(#gradRoot)" stroke="#60a5fa" stroke-width="2"/>
+    <text x="225" y="31" fill="#ffffff" font-size="15" font-weight="700" text-anchor="middle">1.0 HỆ THỐNG TRỢ LÝ CHĂM SÓC THÚ CƯNG (PETCARE)</text>
+  </g>
+
+  <!-- Connectors from Root to 4 main columns -->
+  <path d="M 700 160 L 700 185" stroke="#64748b" stroke-width="2" fill="none"/>
+  <path d="M 215 185 L 1185 185" stroke="#64748b" stroke-width="2" fill="none"/>
+  <path d="M 215 185 L 215 210" stroke="#64748b" stroke-width="2" fill="none"/>
+  <path d="M 540 185 L 540 210" stroke="#64748b" stroke-width="2" fill="none"/>
+  <path d="M 860 185 L 860 210" stroke="#64748b" stroke-width="2" fill="none"/>
+  <path d="M 1185 185 L 1185 210" stroke="#64748b" stroke-width="2" fill="none"/>
+
+  <!-- COLUMN 1: 1.0 & 5.0 -->
+  <!-- 1.0 Deliverable -->
+  <g transform="translate(65, 210)" filter="url(#shadow)">
+    <rect width="300" height="42" rx="8" fill="url(#gradL2)" stroke="#38bdf8" stroke-width="1.5"/>
+    <text x="150" y="26" fill="#38bdf8" font-size="13" font-weight="700" text-anchor="middle">1.0 Phân hệ Hồ sơ Thú cưng &amp; Y bạ số</text>
+  </g>
+  <!-- Lines for Col 1 -->
+  <path d="M 90 252 L 90 530" stroke="#475569" stroke-width="1.5" fill="none"/>
+  
+  <g transform="translate(100, 265)">
+    <path d="M -10 12 L 0 12" stroke="#475569" stroke-width="1.5"/>
+    <rect width="265" height="26" rx="4" fill="#1e293b" stroke="#334155"/>
+    <text x="10" y="17" fill="#f1f5f9" font-size="11.5" font-weight="600">1.1 Hồ sơ định danh Thú cưng</text>
+    <rect x="200" y="4" width="55" height="18" rx="9" fill="#065f46"/><text x="227" y="16" fill="#34d399" font-size="9" font-weight="700" text-anchor="middle">MUST</text>
+    
+    <text x="20" y="40" fill="#94a3b8" font-size="10.5">├─ 1.1.1 Giao diện &amp; Form nhập thông tin</text>
+    <text x="20" y="55" fill="#94a3b8" font-size="10.5">└─ 1.1.2 Dịch vụ xử lý CRUD &amp; Lưu trữ ảnh</text>
+  </g>
+
+  <g transform="translate(100, 335)">
+    <path d="M -10 12 L 0 12" stroke="#475569" stroke-width="1.5"/>
+    <rect width="265" height="26" rx="4" fill="#1e293b" stroke="#334155"/>
+    <text x="10" y="17" fill="#f1f5f9" font-size="11.5" font-weight="600">1.2 Sổ y bạ điện tử (Health Records)</text>
+    <rect x="200" y="4" width="55" height="18" rx="9" fill="#065f46"/><text x="227" y="16" fill="#34d399" font-size="9" font-weight="700" text-anchor="middle">MUST</text>
+    
+    <text x="20" y="40" fill="#94a3b8" font-size="10.5">├─ 1.2.1 Sổ tiêm chủng &amp; Lịch sử Vaccine</text>
+    <text x="20" y="55" fill="#94a3b8" font-size="10.5">├─ 1.2.2 Đơn thuốc &amp; Nhật ký khám bệnh</text>
+    <text x="20" y="70" fill="#94a3b8" font-size="10.5">└─ 1.2.3 Báo cáo xuất sổ y bạ PDF/In ấn</text>
+  </g>
+
+  <g transform="translate(100, 420)">
+    <path d="M -10 12 L 0 12" stroke="#475569" stroke-width="1.5"/>
+    <rect width="265" height="26" rx="4" fill="#1e293b" stroke="#334155"/>
+    <text x="10" y="17" fill="#f1f5f9" font-size="11.5" font-weight="600">1.3 Nhật ký Tăng trưởng (Growth)</text>
+    <rect x="195" y="4" width="60" height="18" rx="9" fill="#854d0e"/><text x="225" y="16" fill="#fde047" font-size="9" font-weight="700" text-anchor="middle">SHOULD</text>
+    
+    <text x="20" y="40" fill="#94a3b8" font-size="10.5">├─ 1.3.1 Biểu đồ lịch sử cân nặng</text>
+    <text x="20" y="55" fill="#94a3b8" font-size="10.5">└─ 1.3.2 Album ảnh Timeline lớn lên</text>
+  </g>
+
+  <!-- 5.0 Deliverable in Col 1 -->
+  <g transform="translate(65, 520)" filter="url(#shadow)">
+    <rect width="300" height="42" rx="8" fill="url(#gradL2)" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="150" y="26" fill="#f59e0b" font-size="13" font-weight="700" text-anchor="middle">5.0 Phân hệ Tìm kiếm Thú thất lạc</text>
+  </g>
+  <path d="M 90 562 L 90 645" stroke="#475569" stroke-width="1.5" fill="none"/>
+  <g transform="translate(100, 575)">
+    <path d="M -10 12 L 0 12" stroke="#475569" stroke-width="1.5"/>
+    <text x="10" y="14" fill="#cbd5e1" font-size="11">├─ 5.1 Bản tin báo mất / Nhặt được Pet</text>
+    <text x="10" y="32" fill="#cbd5e1" font-size="11">└─ 5.2 Bộ tạo Poster khẩn cấp kèm mã QR</text>
+  </g>
+
+
+  <!-- COLUMN 2: 2.0 & 6.0 -->
+  <!-- 2.0 Deliverable -->
+  <g transform="translate(390, 210)" filter="url(#shadow)">
+    <rect width="300" height="42" rx="8" fill="url(#gradL2)" stroke="#ef4444" stroke-width="1.5"/>
+    <text x="150" y="26" fill="#f87171" font-size="13" font-weight="700" text-anchor="middle">2.0 Phân hệ Cấp cứu SOS &amp; Thú y 24/7</text>
+  </g>
+  <path d="M 415 252 L 415 490" stroke="#475569" stroke-width="1.5" fill="none"/>
+
+  <g transform="translate(425, 265)">
+    <path d="M -10 12 L 0 12" stroke="#475569" stroke-width="1.5"/>
+    <rect width="265" height="26" rx="4" fill="#1e293b" stroke="#334155"/>
+    <text x="10" y="17" fill="#f1f5f9" font-size="11.5" font-weight="600">2.1 Bộ phân loại cấp cứu (Triage)</text>
+    <rect x="200" y="4" width="55" height="18" rx="9" fill="#065f46"/><text x="227" y="16" fill="#34d399" font-size="9" font-weight="700" text-anchor="middle">MUST</text>
+    
+    <text x="20" y="40" fill="#94a3b8" font-size="10.5">├─ 2.1.1 Bảng câu hỏi sàng lọc Đỏ/Vàng/Xanh</text>
+    <text x="20" y="55" fill="#94a3b8" font-size="10.5">└─ 2.1.2 Tầng lọc an toàn y khoa thú y</text>
+  </g>
+
+  <g transform="translate(425, 335)">
+    <path d="M -10 12 L 0 12" stroke="#475569" stroke-width="1.5"/>
+    <rect width="265" height="26" rx="4" fill="#1e293b" stroke="#334155"/>
+    <text x="10" y="17" fill="#f1f5f9" font-size="11.5" font-weight="600">2.2 Danh bạ &amp; Bản đồ Trạm xá 24/7</text>
+    <rect x="200" y="4" width="55" height="18" rx="9" fill="#065f46"/><text x="227" y="16" fill="#34d399" font-size="9" font-weight="700" text-anchor="middle">MUST</text>
+    
+    <text x="20" y="40" fill="#94a3b8" font-size="10.5">├─ 2.2.1 Bộ dữ liệu danh bạ trạm xá cấp cứu</text>
+    <text x="20" y="55" fill="#94a3b8" font-size="10.5">└─ 2.2.2 Bản đồ định vị GPS (Google Places)</text>
+  </g>
+
+  <!-- 6.0 Deliverable in Col 2 -->
+  <g transform="translate(390, 520)" filter="url(#shadow)">
+    <rect width="300" height="42" rx="8" fill="url(#gradL2)" stroke="#a855f7" stroke-width="1.5"/>
+    <text x="150" y="26" fill="#c084fc" font-size="13" font-weight="700" text-anchor="middle">6.0 Trợ lý Thông minh AI &amp; Tri thức</text>
+  </g>
+  <path d="M 415 562 L 415 645" stroke="#475569" stroke-width="1.5" fill="none"/>
+  <g transform="translate(425, 575)">
+    <path d="M -10 12 L 0 12" stroke="#475569" stroke-width="1.5"/>
+    <text x="10" y="14" fill="#cbd5e1" font-size="11">├─ 6.1 Cổng AI Health Chatbot (Gemini)</text>
+    <text x="10" y="32" fill="#cbd5e1" font-size="11">└─ 6.2 Kho cẩm nang &amp; Video sơ cứu thú y</text>
+  </g>
+
+
+  <!-- COLUMN 3: 3.0 & 7.0 -->
+  <!-- 3.0 Deliverable -->
+  <g transform="translate(710, 210)" filter="url(#shadow)">
+    <rect width="300" height="42" rx="8" fill="url(#gradL2)" stroke="#10b981" stroke-width="1.5"/>
+    <text x="150" y="26" fill="#34d399" font-size="13" font-weight="700" text-anchor="middle">3.0 Phân hệ Lịch nhắc Y tế &amp; Thông báo</text>
+  </g>
+  <path d="M 735 252 L 735 490" stroke="#475569" stroke-width="1.5" fill="none"/>
+
+  <g transform="translate(745, 265)">
+    <path d="M -10 12 L 0 12" stroke="#475569" stroke-width="1.5"/>
+    <rect width="265" height="26" rx="4" fill="#1e293b" stroke="#334155"/>
+    <text x="10" y="17" fill="#f1f5f9" font-size="11.5" font-weight="600">3.1 Công cụ tạo lịch nhắc việc</text>
+    <rect x="200" y="4" width="55" height="18" rx="9" fill="#065f46"/><text x="227" y="16" fill="#34d399" font-size="9" font-weight="700" text-anchor="middle">MUST</text>
+    
+    <text x="20" y="40" fill="#94a3b8" font-size="10.5">├─ 3.1.1 Lịch nhắc tiêm phòng &amp; Tẩy giun</text>
+    <text x="20" y="55" fill="#94a3b8" font-size="10.5">└─ 3.1.2 Cơ chế tự động tính chu kỳ lặp</text>
+  </g>
+
+  <g transform="translate(745, 335)">
+    <path d="M -10 12 L 0 12" stroke="#475569" stroke-width="1.5"/>
+    <rect width="265" height="26" rx="4" fill="#1e293b" stroke="#334155"/>
+    <text x="10" y="17" fill="#f1f5f9" font-size="11.5" font-weight="600">3.2 Hệ thống thông báo tự động</text>
+    <rect x="200" y="4" width="55" height="18" rx="9" fill="#065f46"/><text x="227" y="16" fill="#34d399" font-size="9" font-weight="700" text-anchor="middle">MUST</text>
+    
+    <text x="20" y="40" fill="#94a3b8" font-size="10.5">└─ 3.2.1 Trung tâm thông báo đẩy &amp; In-app banner</text>
+  </g>
+
+  <!-- 7.0 Deliverable in Col 3 -->
+  <g transform="translate(710, 520)" filter="url(#shadow)">
+    <rect width="300" height="42" rx="8" fill="url(#gradL2)" stroke="#ec4899" stroke-width="1.5"/>
+    <text x="150" y="26" fill="#f472b6" font-size="13" font-weight="700" text-anchor="middle">7.0 Phân hệ Mạng xã hội Thú cưng</text>
+  </g>
+  <path d="M 735 562 L 735 645" stroke="#475569" stroke-width="1.5" fill="none"/>
+  <g transform="translate(745, 575)">
+    <path d="M -10 12 L 0 12" stroke="#475569" stroke-width="1.5"/>
+    <text x="10" y="14" fill="#cbd5e1" font-size="11">├─ 7.1 Bảng tin chia sẻ hình ảnh Pet</text>
+    <text x="10" y="32" fill="#cbd5e1" font-size="11">└─ 7.2 Tương tác (Like, Comment, Report)</text>
+  </g>
+
+
+  <!-- COLUMN 4: 4.0 & 8.0 -->
+  <!-- 4.0 Deliverable -->
+  <g transform="translate(1035, 210)" filter="url(#shadow)">
+    <rect width="300" height="42" rx="8" fill="url(#gradL2)" stroke="#6366f1" stroke-width="1.5"/>
+    <text x="150" y="26" fill="#818cf8" font-size="13" font-weight="700" text-anchor="middle">4.0 Nền tảng Xác thực &amp; Hạ tầng</text>
+  </g>
+  <path d="M 1060 252 L 1060 490" stroke="#475569" stroke-width="1.5" fill="none"/>
+
+  <g transform="translate(1070, 265)">
+    <path d="M -10 12 L 0 12" stroke="#475569" stroke-width="1.5"/>
+    <rect width="265" height="26" rx="4" fill="#1e293b" stroke="#334155"/>
+    <text x="10" y="17" fill="#f1f5f9" font-size="11.5" font-weight="600">4.1 Cơ sở dữ liệu &amp; API Server</text>
+    <rect x="200" y="4" width="55" height="18" rx="9" fill="#065f46"/><text x="227" y="16" fill="#34d399" font-size="9" font-weight="700" text-anchor="middle">MUST</text>
+    
+    <text x="20" y="40" fill="#94a3b8" font-size="10.5">├─ 4.1.1 Lược đồ MongoDB &amp; Seed Data</text>
+    <text x="20" y="55" fill="#94a3b8" font-size="10.5">└─ 4.1.2 Module Xác thực bảo mật JWT hai lớp</text>
+  </g>
+
+  <g transform="translate(1070, 335)">
+    <path d="M -10 12 L 0 12" stroke="#475569" stroke-width="1.5"/>
+    <rect width="265" height="26" rx="4" fill="#1e293b" stroke="#334155"/>
+    <text x="10" y="17" fill="#f1f5f9" font-size="11.5" font-weight="600">4.2 Khung ứng dụng PWA Mobile</text>
+    <rect x="200" y="4" width="55" height="18" rx="9" fill="#065f46"/><text x="227" y="16" fill="#34d399" font-size="9" font-weight="700" text-anchor="middle">MUST</text>
+    
+    <text x="20" y="40" fill="#94a3b8" font-size="10.5">├─ 4.2.1 Design System &amp; Dark/Light Mode</text>
+    <text x="20" y="55" fill="#94a3b8" font-size="10.5">└─ 4.2.2 Kịch bản kiểm thử Acceptance</text>
+  </g>
+
+  <!-- 8.0 Deliverable in Col 4 -->
+  <g transform="translate(1035, 520)" filter="url(#shadow)">
+    <rect width="300" height="42" rx="8" fill="url(#gradL2)" stroke="#14b8a6" stroke-width="1.5"/>
+    <text x="150" y="26" fill="#2dd4bf" font-size="13" font-weight="700" text-anchor="middle">8.0 Hồ sơ Bàn giao &amp; Triển khai</text>
+  </g>
+  <path d="M 1060 562 L 1060 645" stroke="#475569" stroke-width="1.5" fill="none"/>
+  <g transform="translate(1070, 575)">
+    <path d="M -10 12 L 0 12" stroke="#475569" stroke-width="1.5"/>
+    <text x="10" y="14" fill="#cbd5e1" font-size="11">├─ 8.1 Docker &amp; Cloud (Railway/Vercel)</text>
+    <text x="10" y="32" fill="#cbd5e1" font-size="11">└─ 8.2 Tài liệu kỹ thuật &amp; Hướng dẫn nghiệm thu</text>
+  </g>
+
+  <!-- Legend at Bottom -->
+  <g transform="translate(250, 890)" filter="url(#shadow)">
+    <rect width="900" height="40" rx="8" fill="#1e293b" stroke="#334155"/>
+    <text x="20" y="25" fill="#94a3b8" font-size="12" font-weight="600">CHÚ GIẢI MoSCoW:</text>
+    
+    <rect x="160" y="11" width="16" height="16" rx="4" fill="#065f46" stroke="#34d399"/>
+    <text x="185" y="24" fill="#e2e8f0" font-size="12"><tspan font-weight="700" fill="#34d399">MUST-HAVE (~60% MVP):</tspan> Bắt buộc hoàn thành để nghiệm thu</text>
+
+    <rect x="520" y="11" width="16" height="16" rx="4" fill="#854d0e" stroke="#fde047"/>
+    <text x="545" y="24" fill="#e2e8f0" font-size="12"><tspan font-weight="700" fill="#fde047">SHOULD / COULD:</tspan> Tính năng gia tăng giá trị</text>
+  </g>
+</svg>
