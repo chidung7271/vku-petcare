@@ -312,14 +312,16 @@ class ApiClient {
     return this.request<any[]>(`/locations?${params.toString()}`);
   }
 
-  async getNearbyLocations(lat: number, lng: number, radiusKm = 10, type?: string) {
-    const params = new URLSearchParams({
-      lat: String(lat),
-      lng: String(lng),
-      radiusKm: String(radiusKm),
-    });
-    if (type) params.append('type', type);
-    return this.request<any[]>(`/locations/nearby?${params.toString()}`);
+  async getNearbyLocations(params?: { lat?: number; lng?: number; radius?: number; type?: string; search?: string }) {
+    const query = new URLSearchParams();
+    if (params?.lat !== undefined) query.append('lat', params.lat.toString());
+    if (params?.lng !== undefined) query.append('lng', params.lng.toString());
+    if (params?.radius !== undefined) query.append('radius', params.radius.toString());
+    if (params?.type && params.type !== 'all') query.append('type', params.type);
+    if (params?.search) query.append('search', params.search);
+
+    const queryString = query.toString() ? `?${query.toString()}` : '';
+    return this.request<any[]>(`/locations/nearby${queryString}`);
   }
 
   // --- LOST & FOUND PETS ---

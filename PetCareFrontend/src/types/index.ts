@@ -125,6 +125,7 @@ export interface VetLocation {
   hours: string;
   lat: number;
   lng: number;
+  source?: 'google_places' | 'database' | 'mock';
 }
 
 export interface LostPetReport {
