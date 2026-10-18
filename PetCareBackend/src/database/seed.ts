@@ -9,7 +9,7 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/petcare';
 
 async function seed() {
-  console.log('🌱 [WBS 4.1.1] Starting database seed for Core Schemas: Users, Pets, Clinics...');
+  console.log('🌱 [WBS 4.1.2] Starting database seed for Core Schemas: Users, Pets, Clinics...');
   console.log(`Connecting to: ${MONGODB_URI}`);
 
   await mongoose.connect(MONGODB_URI);
@@ -146,7 +146,7 @@ async function seed() {
   ]);
   console.log('✅ 3. Seeded Locations/Clinics collection (3 trạm xá thú y 24/7 & phòng khám)');
 
-  console.log('🎉 [WBS 4.1.1] Core database seed completed successfully!');
+  console.log('🎉 [WBS 4.1.2] Core database seed completed successfully!');
   await mongoose.disconnect();
 }
 
