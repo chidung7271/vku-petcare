@@ -59,10 +59,22 @@ async function bootstrap() {
   const swaggerConfig = new DocumentBuilder()
     .setTitle('PetCare Assistant API')
     .setDescription(
-      'API Backend cho ứng dụng PetCare Assistant - [WBS 4.1.1] Khởi tạo API Server, Kết nối Database MongoDB và các Schema cốt lõi.',
+      'API Backend cho ứng dụng PetCare Assistant - [WBS 4.1.2] Xây dựng chức năng Xác thực (Login / Register / JWT).',
     )
     .setVersion('1.0.0')
-    .addTag('health', 'Kiểm tra trạng thái máy chủ & kết nối CSDL')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Nhập access token JWT',
+        in: 'header',
+      },
+      'JWT-auth',
+    )
+    .addTag('health', 'Kiểm tra trạng thái máy chủ')
+    .addTag('Authentication', 'Đăng ký, Đăng nhập, Token Refresh, Đăng xuất')
     .addTag('users', 'Quản lý thông tin tài khoản người dùng')
     .addTag('pets', 'Quản lý hồ sơ thú cưng')
     .addTag('locations', 'Danh bạ phòng khám và trạm xá thú y 24/7')

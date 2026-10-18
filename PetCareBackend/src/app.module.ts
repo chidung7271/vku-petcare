@@ -4,6 +4,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerModule } from '@nestjs/throttler';
 
 import { AppController } from './app.controller';
+import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { PetsModule } from './pets/pets.module';
 import { LocationsModule } from './locations/locations.module';
@@ -34,7 +35,8 @@ import { HttpLoggerMiddleware } from './common/middleware/http-logger.middleware
       },
     ]),
 
-    // Core Schemas / Modules for WBS 4.1.1 (Users, Pets, Clinics/Locations)
+    // Core Modules: Auth + Users + Pets + Locations (Clinics)
+    AuthModule,
     UsersModule,
     PetsModule,
     LocationsModule,
