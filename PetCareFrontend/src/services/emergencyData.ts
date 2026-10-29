@@ -4,7 +4,7 @@ export const EMERGENCY_CASES: EmergencyCase[] = [
   {
     id: 'poison_toxic',
     title: 'Ăn phải bả / Hóa chất / Độc tố',
-    keywords: ['bả', 'độc', 'hóa chất', 'thuốc chuột', 'thuốc diệt cỏ', 'chất độc', 'xà phòng', 'tẩy rửa', 'thuốc trừ sâu'],
+    keywords: ['bả', 'ba', 'ăn bả', 'chó ăn bả', 'độc', 'chất độc', 'ngộ độc', 'hóa chất', 'thuốc chuột', 'thuốc diệt cỏ', 'xà phòng', 'tẩy rửa', 'thuốc trừ sâu', 'thuốc tây', 'uống nhầm thuốc', 'dầu gió'],
     urgencyLevel: 'CRITICAL',
     badgeLabel: 'NGUY CƠ TỬ VONG CAO - CẦN CẤP CỨU GẤP',
     summary: 'Ngộ độc là tình trạng đe dọa trực tiếp tính mạng thú cưng trong thời gian ngắn (vài chục phút đến vài giờ). Cần liên hệ ngay cơ sở thú y gần nhất.',
@@ -211,7 +211,7 @@ export const EMERGENCY_CASES: EmergencyCase[] = [
   {
     id: 'snake_insect_bite',
     title: 'Bị rắn / Côn trùng độc / Bọ cạp cắn',
-    keywords: ['rắn', 'côn trùng', 'ong', 'ong đốt', 'rắn cắn', 'bọ cạp', 'sưng mặt'],
+    keywords: ['rắn', 'ran', 'côn trùng', 'con trung', 'ong', 'ong đốt', 'ong chích', 'rắn cắn', 'ran can', 'bọ cạp', 'sưng mặt', 'cắn', 'can', 'bị cắn', 'bi can', 'vết cắn', 'chó cắn', 'mèo cắn'],
     urgencyLevel: 'HIGH',
     badgeLabel: 'CẦN XÁC ĐỊNH LOÀI VÀ HẠN CHẾ VẬN ĐỘNG',
     summary: 'Nọc độc của rắn hoặc sốc phản vệ do ong đốt có thể gây suy hô hấp cấp hoặc hoại tử mô nghiêm trọng.',
@@ -240,16 +240,113 @@ export const EMERGENCY_CASES: EmergencyCase[] = [
   }
 ];
 
+export function removeVietnameseTones(str: string): string {
+  if (!str) return '';
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'd')
+    .toLowerCase()
+    .trim();
+}
+
 export function searchEmergencyCases(query: string): EmergencyCase[] {
   if (!query || !query.trim()) return EMERGENCY_CASES;
-  const q = query.toLowerCase().trim();
-  
+  const rawQ = query.trim().toLowerCase();
+  const normQ = removeVietnameseTones(query);
+  const rawWords = rawQ.split(/[\s\/\(\)\,\.\-]+/).filter(w => w.length >= 2);
+  const normWords = normQ.split(/[\s\/\(\)\,\.\-]+/).filter(w => w.length >= 2);
+  const stopWords = ['bi', 'cho', 'meo', 'con', 'nha', 'toi', 'an', 'phai'];
+  const meaningfulRawWords = rawWords.filter(w => !stopWords.includes(removeVietnameseTones(w)));
+  const meaningfulNormWords = normWords.filter(w => !stopWords.includes(w));
+
   return EMERGENCY_CASES.filter((item) => {
-    return (
-      item.title.toLowerCase().includes(q) ||
-      item.summary.toLowerCase().includes(q) ||
-      item.keywords.some((k) => k.toLowerCase().includes(q) || q.includes(k.toLowerCase())) ||
-      item.dangerSigns.some((d) => d.toLowerCase().includes(q))
-    );
+    const rawTitle = item.title.toLowerCase();
+    const normTitle = removeVietnameseTones(item.title);
+    const rawSummary = item.summary.toLowerCase();
+    const normSummary = removeVietnameseTones(item.summary);
+
+    // 1. Nếu từ khóa tìm kiếm rất ngắn (<= 3 ký tự, vd: "ba", "can", "sot", "nga")
+    if (normQ.length <= 3) {
+      const titleWords = normTitle.split(/[\s\/\(\)\,\.\-\:\;]+/);
+      if (titleWords.includes(normQ)) return true;
+
+      const keywordMatched = item.keywords.some(k => {
+        const normK = removeVietnameseTones(k);
+        return normK.split(/[\s\/\(\)\,\.\-\:\;]+/).includes(normQ);
+      });
+      if (keywordMatched) return true;
+
+      return false;
+    }
+
+    // 2. Khớp cụm từ đầy đủ (Phrase Match) trong tiêu đề hoặc tóm tắt
+    if (
+      rawTitle.includes(rawQ) || normTitle.includes(normQ) ||
+      rawSummary.includes(rawQ) || normSummary.includes(normQ)
+    ) {
+      return true;
+    }
+
+    // 3. Khớp từ khóa keywords (Phrase Match 2 chiều)
+    const hasKeywordMatch = item.keywords.some((k) => {
+      const rawK = k.toLowerCase();
+      const normK = removeVietnameseTones(k);
+      return (
+        rawK.includes(rawQ) || rawQ.includes(rawK) ||
+        normK.includes(normQ) || normQ.includes(normK)
+      );
+    });
+    if (hasKeywordMatch) return true;
+
+    // 4. Khớp dấu hiệu nguy cấp đầy đủ (Phrase Match)
+    const hasDangerMatch = item.dangerSigns.some((d) => {
+      const rawD = d.toLowerCase();
+      const normD = removeVietnameseTones(d);
+      return rawD.includes(rawQ) || normD.includes(normQ);
+    });
+    if (hasDangerMatch) return true;
+
+    // 5. Khớp theo từng từ (Token Match):
+    // Chỉ khớp 1 từ đơn nếu truy vấn chỉ có 1 từ có nghĩa (vd "cắn", "bả", "socola")
+    if (meaningfulRawWords.length === 1) {
+      const wRaw = meaningfulRawWords[0];
+      const wNorm = meaningfulNormWords[0];
+      const hasAccents = wRaw !== wNorm;
+
+      const matched = item.keywords.some(k => {
+        const rawK = k.toLowerCase();
+        const normK = removeVietnameseTones(k);
+        if (hasAccents) {
+          return rawK.split(/[\s\/\(\)\,\.\-]+/).includes(wRaw);
+        }
+        return normK.split(/[\s\/\(\)\,\.\-]+/).includes(wNorm);
+      }) || (
+        hasAccents 
+          ? rawTitle.split(/[\s\/\(\)\,\.\-]+/).includes(wRaw)
+          : normTitle.split(/[\s\/\(\)\,\.\-]+/).includes(wNorm)
+      );
+
+      if (matched) return true;
+    } else if (meaningfulRawWords.length > 1) {
+      // Khi truy vấn gồm nhiều từ (ví dụ "chó bị xe tông", "nuốt phải xương", "bị mất tích"):
+      // Phải có ít nhất 2 từ hoặc trên 60% số từ cùng xuất hiện để tránh nhầm "mất tích" thành "sưng mặt"
+      const matchCount = meaningfulNormWords.filter(w => {
+        return (
+          normTitle.split(/[\s\/\(\)\,\.\-]+/).some(tw => tw === w) ||
+          item.keywords.some(k => {
+            const normK = removeVietnameseTones(k);
+            return normK.split(/[\s\/\(\)\,\.\-]+/).some(kw => kw === w);
+          })
+        );
+      }).length;
+
+      if (matchCount >= 2 && matchCount >= meaningfulNormWords.length * 0.6) {
+        return true;
+      }
+    }
+
+    return false;
   });
 }
