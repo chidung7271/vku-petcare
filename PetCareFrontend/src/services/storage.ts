@@ -348,15 +348,15 @@ const INITIAL_POSTS: CommunityPost[] = [
 ];
 
 const INITIAL_USER: UserProfile = {
-  id: 'user_default',
-  name: 'Nguyễn Thanh Tùng',
-  email: 'thanhtung.petcare@gmail.com',
-  phone: '0901 234 567',
+  id: 'guest',
+  name: 'Khách (Guest)',
+  email: 'guest@petcare.vn',
+  phone: '',
   avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
-  address: 'Ba Đình, Hà Nội',
-  emergencyContact: '0988 765 432',
-  emergencyContactName: 'BS. Nam (Bệnh Viện Thú Y PetHealth)',
-  isLoggedIn: true
+  address: 'Hà Nội, Việt Nam',
+  emergencyContact: '1900 8668',
+  emergencyContactName: 'Hotline Cấp cứu Thú Y 24/7',
+  isLoggedIn: false
 };
 
 export const storage = {
@@ -408,6 +408,10 @@ export const storage = {
       all.unshift(record);
     }
     localStorage.setItem(STORAGE_KEYS.HEALTH_RECORDS, JSON.stringify(all));
+  },
+
+  saveHealthRecords(records: HealthRecord[]) {
+    localStorage.setItem(STORAGE_KEYS.HEALTH_RECORDS, JSON.stringify(records));
   },
 
   deleteHealthRecord(id: string) {
@@ -516,6 +520,15 @@ export const storage = {
     localStorage.setItem(STORAGE_KEYS.LOST_PETS, JSON.stringify(all));
   },
 
+  saveLostPets(reports: LostPetReport[]) {
+    localStorage.setItem(STORAGE_KEYS.LOST_PETS, JSON.stringify(reports));
+  },
+
+  deleteLostPet(id: string) {
+    const all = this.getLostPets().filter(p => p.id !== id);
+    this.saveLostPets(all);
+  },
+
   getPosts(): CommunityPost[] {
     const raw = localStorage.getItem(STORAGE_KEYS.POSTS);
     if (!raw) {
@@ -523,6 +536,10 @@ export const storage = {
       return INITIAL_POSTS;
     }
     return JSON.parse(raw);
+  },
+
+  savePosts(posts: CommunityPost[]) {
+    localStorage.setItem(STORAGE_KEYS.POSTS, JSON.stringify(posts));
   },
 
   savePost(post: CommunityPost) {
@@ -572,8 +589,23 @@ export const storage = {
   },
 
   getUser(): UserProfile {
+    const token = localStorage.getItem('petcare_access_token');
     const raw = localStorage.getItem(STORAGE_KEYS.USER);
-    return raw ? JSON.parse(raw) : INITIAL_USER;
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        return {
+          ...parsed,
+          isLoggedIn: !!token || !!parsed.isLoggedIn
+        };
+      } catch {
+        // fallback
+      }
+    }
+    return {
+      ...INITIAL_USER,
+      isLoggedIn: !!token
+    };
   },
 
   saveUser(user: UserProfile) {
@@ -599,7 +631,7 @@ export const storage = {
 
   resetAllData() {
     localStorage.clear();
-    localStorage.setItem(STORAGE_KEYS.ONBOARDED, 'true');
+    sessionStorage.clear();
     this.getPets();
     this.getHealthRecords();
     this.getWeightRecords('pet_milo');

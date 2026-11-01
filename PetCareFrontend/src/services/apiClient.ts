@@ -187,39 +187,63 @@ class ApiClient {
 
   // --- GROWTH & WEIGHT ---
   async getWeightRecords(petId: string) {
-    return this.request<any[]>(`/growth/weights?petId=${petId}`);
+    return this.request<any[]>(`/pets/${petId}/weights`);
   }
 
-  async addWeightRecord(data: { petId: string; weight: number; recordedAt?: string; notes?: string }) {
-    return this.request<any>('/growth/weights', {
+  async addWeightRecord(petId: string, data: { weight: number; unit?: string; recordedAt?: string; note?: string }) {
+    return this.request<any>(`/pets/${petId}/weights`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
   async getGrowthPhotos(petId: string) {
-    return this.request<any[]>(`/growth/photos?petId=${petId}`);
+    return this.request<any[]>(`/pets/${petId}/photos`);
   }
 
-  async addGrowthPhoto(data: { petId: string; photoUrl: string; caption?: string; date?: string; tag?: string }) {
-    return this.request<any>('/growth/photos', {
+  async addGrowthPhoto(petId: string, data: { photoUrl: string; thumbnailUrl?: string; takenAt?: string; caption?: string; note?: string; weightAtTime?: number }) {
+    return this.request<any>(`/pets/${petId}/photos`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteGrowthPhoto(petId: string, photoId: string) {
+    return this.request<any>(`/pets/${petId}/photos/${photoId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async addGrowthMilestone(petId: string, data: { weight?: number; photoUrl?: string; date?: string; note?: string }) {
+    return this.request<any>(`/pets/${petId}/milestone`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
   // --- HEALTH RECORDS ---
-  async getHealthRecords(petId?: string, type?: string) {
-    const params = new URLSearchParams();
-    if (petId) params.append('petId', petId);
-    if (type) params.append('type', type);
-    return this.request<any[]>(`/health-records?${params.toString()}`);
+  async getHealthRecords(petId: string, type?: string) {
+    const query = type ? `?type=${encodeURIComponent(type)}` : '';
+    return this.request<any[]>(`/pets/${petId}/health-records${query}`);
   }
 
-  async createHealthRecord(data: any) {
-    return this.request<any>('/health-records', {
+  async createHealthRecord(petId: string, data: any) {
+    return this.request<any>(`/pets/${petId}/health-records`, {
       method: 'POST',
       body: JSON.stringify(data),
+    });
+  }
+
+  async updateHealthRecord(petId: string, recordId: string, data: any) {
+    return this.request<any>(`/pets/${petId}/health-records/${recordId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteHealthRecord(petId: string, recordId: string) {
+    return this.request<any>(`/pets/${petId}/health-records/${recordId}`, {
+      method: 'DELETE',
     });
   }
 
@@ -268,6 +292,13 @@ class ApiClient {
   async createReminder(data: any) {
     return this.request<any>('/reminders', {
       method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateReminder(id: string, data: any) {
+    return this.request<any>(`/reminders/${id}`, {
+      method: 'PATCH',
       body: JSON.stringify(data),
     });
   }
@@ -324,21 +355,62 @@ class ApiClient {
     return this.request<any[]>(`/locations/nearby${queryString}`);
   }
 
-  // --- LOST & FOUND PETS ---
-  async getLostPets(type?: 'lost' | 'found') {
-    const query = type ? `?type=${type}` : '';
+  // --- LOST & FOUND PETS (MONGODB BACKEND) ---
+  async getLostPets(status?: string, search?: string) {
+    const params = new URLSearchParams();
+    if (status) params.append('status', status.toUpperCase());
+    if (search) params.append('search', search);
+    const query = params.toString() ? `?${params.toString()}` : '';
     return this.request<any[]>(`/lost-pets${query}`);
   }
 
-  async createLostPetReport(data: any) {
+  async getLostPetById(id: string) {
+    return this.request<any>(`/lost-pets/${id}`);
+  }
+
+  async createLostPet(data: {
+    petName: string;
+    species?: string;
+    breed?: string;
+    color?: string;
+    gender?: string;
+    microchip?: string;
+    lastSeenLocation: string;
+    lastSeenDate?: string;
+    contactPhone: string;
+    reward?: string;
+    notes?: string;
+    photoUrl?: string;
+    status?: 'LOST' | 'FOUND' | 'lost' | 'found';
+  }) {
     return this.request<any>('/lost-pets', {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        ...data,
+        species: data.species || 'dog',
+        status: (data.status || 'LOST').toUpperCase(),
+      }),
     });
   }
 
+  async createLostPetReport(data: any) {
+    return this.createLostPet(data);
+  }
+
+  async getLostPetPosterData(id: string) {
+    return this.request<any>(`/lost-pets/${id}/poster-data`);
+  }
+
   async getLostPetPoster(id: string) {
-    return this.request<any>(`/lost-pets/${id}/poster`);
+    return this.getLostPetPosterData(id);
+  }
+
+  async markLostPetFound(id: string) {
+    return this.request<any>(`/lost-pets/${id}/found`, { method: 'POST' });
+  }
+
+  async deleteLostPet(id: string) {
+    return this.request<any>(`/lost-pets/${id}`, { method: 'DELETE' });
   }
 
   // --- AI HEALTH ASSISTANT ---
@@ -384,6 +456,7 @@ class ApiClient {
     category?: string;
     postType?: string;
     videoUrl?: string;
+    imageUrl?: string;
     images?: string[];
     tags?: string[];
   }) {
@@ -408,6 +481,14 @@ class ApiClient {
 
   async likeCommunityPost(postId: string) {
     return this.request<any>(`/community/posts/${postId}/like`, { method: 'POST' });
+  }
+
+  async unlikeCommunityPost(postId: string) {
+    return this.request<any>(`/community/posts/${postId}/like`, { method: 'DELETE' });
+  }
+
+  async getCommunityComments(postId: string) {
+    return this.request<any[]>(`/community/posts/${postId}/comments`);
   }
 
   async addCommunityComment(postId: string, content: string) {
@@ -438,6 +519,18 @@ class ApiClient {
     formData.append('file', file);
     return this.request<{ url: string; filename: string; size: number }>(
       `/uploads/image?folder=${folder}`,
+      {
+        method: 'POST',
+        body: formData,
+      },
+    );
+  }
+
+  async uploadVideo(file: File, folder = 'videos') {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.request<{ url: string; filename: string; size: number }>(
+      `/uploads/video?folder=${folder}`,
       {
         method: 'POST',
         body: formData,
