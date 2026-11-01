@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Pet, Reminder, ReminderType, ReminderPriority, RepeatFrequency } from '../types';
 import confetti from 'canvas-confetti';
 import { 
@@ -13,8 +13,13 @@ import {
   Scissors, 
   Stethoscope, 
   RotateCw,
-  Sparkles
+  Sparkles,
+  BellRing,
+  CheckCircle2,
+  AlertTriangle,
+  Volume2
 } from 'lucide-react';
+import { notificationService, NotificationPermissionState } from '../services/notificationService';
 
 interface RemindersViewProps {
   pets: Pet[];
@@ -36,6 +41,7 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
   onShowToast
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [permState, setPermState] = useState<NotificationPermissionState>(notificationService.checkPermission());
 
   // Form State
   const [selectedPetId, setSelectedPetId] = useState<string>(activePet ? activePet.id : (pets[0]?.id || ''));
@@ -48,13 +54,62 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
   const [notes, setNotes] = useState('');
 
   // Sync selectedPetId when activePet changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (activePet) {
       setSelectedPetId(activePet.id);
     } else if (pets.length > 0) {
       setSelectedPetId(pets[0].id);
     }
   }, [activePet, pets]);
+
+  // Keep permission state fresh when tab becomes visible
+  useEffect(() => {
+    const updatePerm = () => setPermState(notificationService.checkPermission());
+    window.addEventListener('focus', updatePerm);
+    document.addEventListener('visibilitychange', updatePerm);
+    return () => {
+      window.removeEventListener('focus', updatePerm);
+      document.removeEventListener('visibilitychange', updatePerm);
+    };
+  }, []);
+
+  // Request browser notification upfront
+  const handleRequestPermission = async () => {
+    const granted = await notificationService.requestPermission();
+    setPermState(notificationService.checkPermission());
+    if (granted) {
+      notificationService.playNotificationChime();
+      onShowToast('Đã kích hoạt thông báo thiết bị thành công! 🔔', 'success');
+    } else {
+      onShowToast('Quyền thông báo chưa được cấp hoặc bị chặn bởi trình duyệt.', 'warning');
+    }
+  };
+
+  // Test notification sound and push
+  const handleTestNotification = () => {
+    const success = notificationService.sendNotification('PetCare: Kiểm tra chuông báo 🐾', {
+      body: 'Hệ thống nhắc nhở đã sẵn sàng! Bạn sẽ nhận chuông báo đúng ngày giờ Việt Nam.',
+      tag: 'test-chime',
+    });
+    if (success) {
+      onShowToast('Đã phát chuông và gửi thông báo thử nghiệm!', 'success');
+    } else {
+      notificationService.playNotificationChime();
+      onShowToast('Đã phát âm thanh chuông thử nghiệm!', 'info');
+    }
+  };
+
+  const handleOpenCreateModal = async () => {
+    // Xin quyền trước khi mở modal theo yêu cầu UX
+    if (permState === 'default') {
+      const granted = await notificationService.requestPermission();
+      setPermState(notificationService.checkPermission());
+      if (granted) {
+        onShowToast('Đã cấp quyền thông báo thiết bị cho lịch hẹn! 🔔', 'success');
+      }
+    }
+    setIsModalOpen(true);
+  };
 
   const handleToggle = (id: string, isDoneCurrently: boolean) => {
     onToggleReminder(id);
@@ -69,9 +124,15 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
     }
   };
 
-  const handleCreate = (e: React.FormEvent) => {
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !selectedPetId) return;
+
+    // Xin quyền trước nếu chưa xin
+    if (permState === 'default') {
+      await notificationService.requestPermission();
+      setPermState(notificationService.checkPermission());
+    }
 
     const newRem: Reminder = {
       id: 'rem_' + Date.now(),
@@ -90,7 +151,6 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
     setIsModalOpen(false);
     setTitle('');
     setNotes('');
-    onShowToast('Đã lên lịch nhắc nhở thành công!', 'success');
   };
 
   // Only display reminders that belong to activePet, or all current user pets if no active pet
@@ -105,26 +165,78 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
     <>
       <div className="reminders-container animate-fade-in">
         {/* Header */}
-      <div className="reminders-header card">
-        <div className="rem-head-left">
-          <div className="rem-icon-circle">
-            <Bell size={24} />
+        <div className="reminders-header card">
+          <div className="rem-head-left">
+            <div className="rem-icon-circle">
+              <Bell size={24} />
+            </div>
+            <div>
+              <h2 className="rem-title">Hệ Thống Nhắc Lịch Thực Tế</h2>
+              <p className="rem-sub">Báo giờ tiêm vaccine, uống thuốc và tẩy giun định kỳ (Giờ VN - GMT+7)</p>
+            </div>
           </div>
-          <div>
-            <h2 className="rem-title">Hệ Thống Nhắc Lịch Thực Tế</h2>
-            <p className="rem-sub">Báo giờ tiêm vaccine, uống thuốc và tẩy giun định kỳ</p>
-          </div>
+
+          <button className="btn-primary btn-sm" onClick={handleOpenCreateModal}>
+            <Plus size={16} />
+            <span>Tạo lịch</span>
+          </button>
         </div>
 
-        <button className="btn-primary btn-sm" onClick={() => setIsModalOpen(true)}>
-          <Plus size={16} />
-          <span>Tạo lịch</span>
-        </button>
-      </div>
+        {/* Upfront Notification Permission Banner */}
+        <div className={`rem-notif-banner card ${permState}`}>
+          {permState === 'granted' ? (
+            <div className="notif-banner-content">
+              <div className="notif-banner-icon success">
+                <CheckCircle2 size={20} />
+              </div>
+              <div className="notif-banner-text">
+                <strong>Thông báo thiết bị đang bật (Múi giờ Việt Nam GMT+7)</strong>
+                <p>Ứng dụng sẽ tự động đổ chuông và bắn thông báo khi đến đúng ngày giờ hẹn của bé.</p>
+              </div>
+              <button 
+                type="button" 
+                className="btn-outline btn-sm notif-banner-action"
+                onClick={handleTestNotification}
+                title="Bắn thông báo thử nghiệm để kiểm tra âm thanh chuông"
+              >
+                <Volume2 size={14} />
+                <span>Thử chuông</span>
+              </button>
+            </div>
+          ) : permState === 'denied' ? (
+            <div className="notif-banner-content">
+              <div className="notif-banner-icon warning">
+                <AlertTriangle size={20} />
+              </div>
+              <div className="notif-banner-text">
+                <strong>Quyền thông báo đang bị chặn trong trình duyệt</strong>
+                <p>Vui lòng bấm vào biểu tượng ổ khóa 🔒 trên thanh địa chỉ và bật "Thông báo" để không bỏ lỡ giờ hẹn của bé.</p>
+              </div>
+            </div>
+          ) : (
+            <div className="notif-banner-content">
+              <div className="notif-banner-icon primary">
+                <BellRing size={20} />
+              </div>
+              <div className="notif-banner-text">
+                <strong>Bật chuông thông báo thiết bị (Giờ VN - GMT+7)</strong>
+                <p>Cho phép PetCare bắn thông báo thực tế trên điện thoại/máy tính khi đến lịch tiêm, uống thuốc của bé.</p>
+              </div>
+              <button 
+                type="button" 
+                className="btn-primary btn-sm notif-banner-action"
+                onClick={handleRequestPermission}
+              >
+                <BellRing size={14} />
+                <span>Bật thông báo ngay</span>
+              </button>
+            </div>
+          )}
+        </div>
 
-      {/* Pending Reminders */}
-      <div className="rem-section">
-        <h3 className="section-title">Sắp đến hạn ({pendingReminders.length})</h3>
+        {/* Pending Reminders */}
+        <div className="rem-section">
+          <h3 className="section-title">Sắp đến hạn ({pendingReminders.length})</h3>
         {pendingReminders.length > 0 ? (
           <div className="rem-list">
             {pendingReminders.map(r => {
@@ -352,6 +464,77 @@ export const RemindersView: React.FC<RemindersViewProps> = ({
           padding: 14px 16px;
           background: var(--primary-gradient-subtle);
           border: 1px solid var(--primary-light);
+        }
+
+        .rem-notif-banner {
+          padding: 12px 16px;
+          border-left: 4px solid var(--primary);
+          background: var(--bg-card);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .rem-notif-banner.granted {
+          border-left-color: var(--success);
+          background: rgba(16, 185, 129, 0.05);
+        }
+
+        .rem-notif-banner.denied {
+          border-left-color: var(--emergency);
+          background: rgba(239, 68, 68, 0.05);
+        }
+
+        .notif-banner-content {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+
+        .notif-banner-icon {
+          width: 36px;
+          height: 36px;
+          border-radius: var(--radius-full);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .notif-banner-icon.primary {
+          background: var(--primary-soft);
+          color: var(--primary);
+        }
+
+        .notif-banner-icon.success {
+          background: rgba(16, 185, 129, 0.15);
+          color: var(--success);
+        }
+
+        .notif-banner-icon.warning {
+          background: rgba(239, 68, 68, 0.15);
+          color: var(--emergency);
+        }
+
+        .notif-banner-text {
+          flex: 1;
+          min-width: 200px;
+        }
+
+        .notif-banner-text strong {
+          display: block;
+          font-size: 0.85rem;
+          color: var(--text-main);
+          margin-bottom: 2px;
+        }
+
+        .notif-banner-text p {
+          margin: 0;
+          font-size: 0.74rem;
+          color: var(--text-muted);
+        }
+
+        .notif-banner-action {
+          flex-shrink: 0;
         }
 
         .rem-head-left {
