@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { VetLocation, LocationType } from '../types';
+
+/**
+ * [WBS 2.2.2] Giao diện bản đồ & danh sách phòng khám sắp xếp theo GPS gần nhất
+ */
 import { locationService, GeolocationStatus } from '../services/locationService';
+
 import { 
   MapPin, 
   Phone, 

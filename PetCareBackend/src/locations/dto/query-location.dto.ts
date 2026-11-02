@@ -3,7 +3,11 @@ import { Type, Transform } from 'class-transformer';
 import { IsNumber, IsOptional, IsString } from 'class-validator';
 import { LocationTypeEnum } from '../schemas/location.schema';
 
+/**
+ * [WBS 2.2.2] DTO tra cứu trạm xá thú y gần nhất theo định vị GPS (Google Places & GeoJSON)
+ */
 export class QueryNearbyLocationsDto {
+
   @ApiPropertyOptional({ example: 21.0378 })
   @IsOptional()
   @Type(() => Number)
