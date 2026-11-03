@@ -1,4 +1,4 @@
-# Multi-stage build for PetCare Backend NestJS
+# [WBS 8.1] Multi-stage build for PetCare Backend NestJS (Railway Cloud Deployment)
 FROM node:20-alpine AS builder
 
 WORKDIR /app
