@@ -31,8 +31,19 @@ export class AllExceptionsFilter implements ExceptionFilter {
         message = res;
       }
     } else if (exception instanceof Error) {
-      message = exception.message;
-      errorCode = exception.name;
+      if (
+        exception.name === 'CastError' ||
+        exception.name === 'BSONError' ||
+        exception.message?.includes('Cast to ObjectId failed') ||
+        exception.message?.includes('must be a 24 character hex string')
+      ) {
+        status = HttpStatus.BAD_REQUEST;
+        message = 'Mã định danh (ID) không đúng định dạng ObjectId hợp lệ của hệ thống';
+        errorCode = 'INVALID_OBJECT_ID';
+      } else {
+        message = exception.message;
+        errorCode = exception.name;
+      }
     }
 
     // Format concise log for client errors (4xx), detailed for server errors (500)
