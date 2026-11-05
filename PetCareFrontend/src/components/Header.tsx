@@ -140,8 +140,8 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="sos-call-text">Gọi SOS</span>
         </a>
 
-        {/* Guest Login Shortcut */}
-        {!isLoggedIn && onOpenAuthModal && (
+        {/* Guest Login Shortcut - Chỉ hiển thị khi CHƯA đăng nhập và KHÔNG có nút Quay lại (để header luôn thoáng đẹp không bị che) */}
+        {!isLoggedIn && !canGoBack && onOpenAuthModal && (
           <button 
             className="header-login-btn animate-fade-in"
             onClick={onOpenAuthModal}
@@ -458,7 +458,7 @@ export const Header: React.FC<HeaderProps> = ({
           color: #ffffff;
         }
 
-        @media (max-width: 480px) {
+        @media (max-width: 540px) {
           .header-login-text {
             display: none;
           }

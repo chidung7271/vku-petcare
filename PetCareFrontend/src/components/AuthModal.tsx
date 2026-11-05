@@ -26,6 +26,7 @@ interface AuthModalProps {
   onShowToast: (text: string, type: 'success' | 'warning' | 'info' | 'error') => void;
   initialMode?: 'login' | 'register';
   messageHint?: string;
+  onContinueAsGuest?: () => void;
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({
@@ -34,7 +35,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onSuccess,
   onShowToast,
   initialMode = 'login',
-  messageHint
+  messageHint,
+  onContinueAsGuest
 }) => {
   const [mode, setMode] = useState<'login' | 'register'>(initialMode);
   const [showPassword, setShowPassword] = useState(false);
@@ -93,7 +95,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           };
           onSuccess(loggedInUser);
           onShowToast(`Chào mừng ${loggedInUser.name} quay trở lại! 🐾`, 'success');
-          onClose();
         } catch (apiErr: any) {
           console.warn('Backend login error:', apiErr.message);
           if (apiErr.message?.includes('401') || apiErr.message?.includes('sai') || apiErr.message?.includes('Unauthorized')) {
@@ -145,7 +146,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           };
           onSuccess(newUser);
           onShowToast(`Đăng ký tài khoản thành công! Chào mừng ${newUser.name} gia nhập PetCare! 🎉`, 'success');
-          onClose();
         } catch (apiErr: any) {
           console.warn('Backend register error:', apiErr.message);
           if (apiErr.message?.includes('đã tồn tại') || apiErr.message?.includes('already exists') || apiErr.message?.includes('409')) {
@@ -158,12 +158,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     } finally {
       setLoading(false);
     }
-  };
-
-  // Quick Demo Login helper
-  const handleQuickDemo = () => {
-    setEmail('thanhtung.petcare@gmail.com');
-    setPassword('123456');
   };
 
   return (
@@ -337,28 +331,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             )}
           </button>
 
-          {/* Quick Demo Helper (Only in Login mode) */}
-          {mode === 'login' && (
-            <div className="quick-demo-box">
-              <span>Thử nhanh tài khoản mẫu: </span>
-              <button 
-                type="button" 
-                className="btn-quick-fill"
-                onClick={handleQuickDemo}
-              >
-                Điền mẫu tự động
-              </button>
-            </div>
-          )}
-
           {/* Guest Mode Dismiss */}
           <div className="guest-mode-row">
             <button 
               type="button" 
               className="btn-guest-dismiss"
-              onClick={onClose}
+              onClick={() => {
+                if (onContinueAsGuest) {
+                  onContinueAsGuest();
+                } else {
+                  onClose();
+                }
+              }}
             >
-              Tiếp tục với tư cách Khách vãng lai
+              🐾 Tiếp tục với tư cách Khách (Dùng bản trải nghiệm)
             </button>
           </div>
         </form>
@@ -625,18 +611,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         }
 
         .btn-guest-dismiss {
-          background: transparent;
-          border: none;
-          color: var(--text-muted);
-          font-size: 0.8rem;
-          font-weight: 600;
+          background: rgba(20, 154, 140, 0.08);
+          border: 1.5px dashed #149a8c;
+          border-radius: 10px;
+          color: #0f766e;
+          font-size: 0.82rem;
+          font-weight: 700;
           cursor: pointer;
-          text-decoration: underline;
-          padding: 4px 8px;
+          padding: 8px 14px;
+          width: 100%;
+          text-align: center;
+          transition: all 0.2s ease;
         }
 
         .btn-guest-dismiss:hover {
-          color: var(--primary);
+          background: rgba(20, 154, 140, 0.16);
+          color: #0d7a6e;
+          transform: translateY(-1px);
         }
 
         .auth-footer-badge {
