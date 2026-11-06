@@ -32,21 +32,15 @@ interface HomeViewProps {
 }
 
 const COMMON_QUESTIONS = [
-  'Ăn phải chất độc',
+  'Ăn phải bả / Chất độc',
   'Bị hóc dị vật',
-  'Nôn ói liên tục',
+  'Ăn Chocolate / Bánh kẹo',
+  'Bị tai nạn xe / Chảy máu',
+  'Sốc nhiệt / Say nắng',
+  'Co giật / Động kinh',
+  'Nôn ói dữ dội',
   'Tiêu chảy ra máu',
-  'Co giật',
-  'Khó thở',
-  'Chảy máu',
-  'Bị bỏng nước sôi',
-  'Bị ve / rận',
-  'Bị rắn / ong cắn',
-  'Bị tai nạn xe',
-  'Mất tích',
-  'Không chịu ăn 2 ngày',
-  'Sốt cao',
-  'Lờ đờ bất thường'
+  'Bị rắn / Côn trùng cắn'
 ];
 
 export const HomeView: React.FC<HomeViewProps> = ({
@@ -190,9 +184,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <span>+ Thêm Pet</span>
           </button>
 
-          <button className="quick-action-card" onClick={onOpenAddWeight}>
-            <div className="qa-icon blue"><Scale size={22} /></div>
-            <span>Ghi Cân Nặng</span>
+          <button className="quick-action-card" onClick={onOpenAddPhoto}>
+            <div className="qa-icon orange"><Camera size={22} /></div>
+            <span>Mốc Phát Triển</span>
           </button>
 
           <button className="quick-action-card" onClick={onOpenAddReminder}>
@@ -200,14 +194,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <span>Thêm Lịch</span>
           </button>
 
-          <button className="quick-action-card" onClick={onOpenAddPhoto}>
-            <div className="qa-icon orange"><Camera size={22} /></div>
-            <span>Chụp Ảnh</span>
-          </button>
-
           <button className="quick-action-card" onClick={() => onNavigate('health')}>
             <div className="qa-icon green"><FileText size={22} /></div>
             <span>Sổ Sức Khỏe</span>
+          </button>
+
+          <button className="quick-action-card" onClick={() => onNavigate('locations')}>
+            <div className="qa-icon blue"><MapPin size={22} /></div>
+            <span>Phòng Khám</span>
           </button>
 
           <button className="quick-action-card sos-card" onClick={() => onNavigate('emergency')}>
