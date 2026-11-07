@@ -1,6 +1,10 @@
 # Dependencies
 node_modules/
-package-lock.json
+/dung/
+/thang/
+/thai/
+/kiet/
+/huy/
 
 # Builds & Outputs
 dist/
@@ -18,7 +22,7 @@ build/
 # Uploads & Media storage
 PetCareBackend/uploads/*
 !PetCareBackend/uploads/.gitkeep
-uploads/
+/uploads/
 
 # Archive files & temporary assets
 *.rar
