@@ -3,6 +3,7 @@ import { TriageRequestDto } from './dto/triage-request.dto';
 
 export interface EmergencyTriageResult {
   severity: 'CRITICAL' | 'HIGH' | 'MODERATE' | 'LOW';
+  colorCode: 'RED' | 'YELLOW' | 'GREEN';
   title: string;
   immediateActions: string[];
   doNotDo: string[];
@@ -67,18 +68,20 @@ export class EmergencySafetyService {
     const text = `${dto.problem} ${dto.symptoms || ''} ${dto.suspectedSubstance || ''}`.toLowerCase();
     this.logger.warn(`Evaluating emergency triage for: "${dto.problem}"`);
 
-    // 1. Poisoning / Chemical ingestion
+    // 1. Poisoning / Chemical ingestion -> RED
     if (
       text.includes('bả') ||
       text.includes('thuốc chuột') ||
       text.includes('thuốc trừ sâu') ||
       text.includes('chất độc') ||
       text.includes('hóa chất') ||
-      text.includes('thuốc tẩy')
+      text.includes('thuốc tẩy') ||
+      dto.consciousness === 'UNCONSCIOUS'
     ) {
       return {
         severity: 'CRITICAL',
-        title: 'CÓ THỂ ĐE DỌA TÍNH MẠNG — CẦN LIÊN HỆ BÁC SĨ THÚ Y NGAY',
+        colorCode: 'RED',
+        title: 'MÃ ĐỎ: CÓ THỂ ĐE DỌA TÍNH MẠNG — CẦN ĐẾN BỆNH VIỆN THÚ Y NGAY',
         immediateActions: [
           'Di chuyển thú cưng ngay lập tức khỏi nguồn chất độc để tránh ăn thêm.',
           'Giữ lại bao bì, nhãn hiệu hoặc mẫu chất nghi ngờ nếu an toàn để đưa bác sĩ xem.',
@@ -113,49 +116,15 @@ export class EmergencySafetyService {
       };
     }
 
-    // 2. Chocolate / Xylitol
-    if (text.includes('chocolate') || text.includes('sô cô la') || text.includes('socola') || text.includes('xylitol') || text.includes('kẹo cao su')) {
-      return {
-        severity: 'HIGH',
-        title: 'NGỘ ĐỘC THỰC PHẨM NGUY HIỂM — CẦN ĐẾN THÚ Y TRONG THỜI GIAN VÀNG',
-        immediateActions: [
-          'Lấy hết phần bánh kẹo còn thừa ra khỏi miệng thú cưng.',
-          'Giữ lại bao bì để xác định loại chocolate (chocolate đen/cacao nguyên chất độc gấp 5-10 lần chocolate sữa).',
-          'Liên hệ ngay phòng khám thú y để bác sĩ tính toán liều độc theo thể trọng.',
-          'Đưa đến phòng khám trong vòng 1-2 giờ đầu để bác sĩ rửa dạ dày và cho uống than hoạt tính y tế an toàn.'
-        ],
-        doNotDo: [
-          'KHÔNG cho uống thuốc hạ sốt của người (như Paracetamol/Panadol) - cực kỳ độc với mèo và chó!',
-          'KHÔNG cho uống nước ngọt, nước đường khi nghi ngờ ngộ độc Xylitol.',
-          'KHÔNG chờ đến khi co giật mới đưa đi khám.'
-        ],
-        redFlags: [
-          'Tim đập nhanh bất thường, bồn chồn, tăng động',
-          'Nôn mửa, tiêu chảy, khát nước liên tục',
-          'Đi đứng loạng choạng, run cơ',
-          'Co giật, sụp đổ cơ thể'
-        ],
-        nextSteps: [
-          { label: 'Gọi bác sĩ tư vấn', actionType: 'call' },
-          { label: 'Tìm phòng khám thú y gần nhất', actionType: 'find_vet' }
-        ],
-        recommendedQuestions: [
-          'Bé ăn loại chocolate nào (đen, sữa hay bột cacao)?',
-          'Ước tính khối lượng (gam) đã ăn?',
-          'Cân nặng chính xác của bé là bao nhiêu kg?'
-        ],
-        disclaimer: MEDICAL_SAFETY_DISCLAIMER
-      };
-    }
-
-    // 3. Choking / Airway Obstruction
-    if (text.includes('hóc') || text.includes('dị vật') || text.includes('khó thở') || text.includes('nghẹn') || text.includes('xương')) {
+    // 2. Choking / Airway Obstruction -> RED
+    if (text.includes('hóc') || text.includes('dị vật') || text.includes('khó thở') || text.includes('nghẹn') || text.includes('tím tái')) {
       return {
         severity: 'CRITICAL',
-        title: 'CẤP CỨU THỞ KHẨN CẤP — TẮC NGHẼN ĐƯỜNG THỞ',
+        colorCode: 'RED',
+        title: 'MÃ ĐỎ: CẤP CỨU THỞ KHẨN CẤP — TẮC NGHẼN ĐƯỜNG THỞ NGUY KỊCH',
         immediateActions: [
           'Nếu thú cưng đang ho mạnh, hãy để thú cưng tự tống dị vật ra ngoài.',
-          'Nếu nghẹt thở hoàn toàn: cẩn thận mở miệng, dùng ngón tay gạt nhẹ nếu dị vật nằm ngay cửa miệng (cẩn thận tránh bị cắn hoặc đẩy sâu hơn).',
+          'Nếu nghẹt thở hoàn toàn: cẩn thận mở miệng, dùng ngón tay gạt nhẹ nếu dị vật nằm ngay cửa miệng (tránh đẩy sâu hơn).',
           'Thực hiện thủ thuật Heimlich thú y: vòng hai tay quanh bụng sát sau xương sườn, ép dứt khoát hướng về phía ngực 3-5 lần.',
           'Đưa ngay đến cơ sở thú y gần nhất nếu dị vật không ra sau 1 phút.'
         ],
@@ -179,51 +148,56 @@ export class EmergencySafetyService {
       };
     }
 
-    // 4. Seizure
-    if (text.includes('co giật') || text.includes('động kinh') || text.includes('sùi bọt') || text.includes('giật')) {
+    // 3. Minor / Routine signs -> GREEN (Monitor at home)
+    if (
+      text.includes('ngứa') ||
+      text.includes('gãi tai') ||
+      text.includes('rụng lông') ||
+      text.includes('chảy ghèn') ||
+      text.includes('hắt hơi nhẹ')
+    ) {
       return {
-        severity: 'HIGH',
-        title: 'CƠN CO GIẬT / ĐỘNG KINH — BẢO VỆ ĐẦU VÀ ĐƯỜNG THỞ',
+        severity: 'LOW',
+        colorCode: 'GREEN',
+        title: 'MÃ XANH: TÌNH TRẠNG NHẸ — CÓ THỂ THEO DÕI VÀ CHĂM SÓC TẠI NHÀ',
         immediateActions: [
-          'Bình tĩnh, dọn dẹp các đồ đạc sắc nhọn xung quanh để thú cưng không va đập chấn thương.',
-          'Tắt đèn sáng, giảm tiếng ồn xung quanh để giảm kích thích thần kinh.',
-          'Lót chăn hoặc gối mềm dưới đầu bé.',
-          'Dùng điện thoại quay video ngắn cơn giật để bác sĩ chẩn đoán chính xác dạng động kinh.',
-          'Sau khi hết giật: giữ ấm và đưa đi khám tìm nguyên nhân.'
+          'Vệ sinh sạch sẽ vùng tai, mắt hoặc da bị kích ứng bằng nước muối sinh lý 0.9%.',
+          'Đeo loa chống liếm (vòng Elizabeth) để tránh bé cào gãi gây trầy xước nhiễm trùng.',
+          'Theo dõi thói quen ăn uống và sinh hoạt trong 24-48 giờ tới.'
         ],
         doNotDo: [
-          'TUYỆT ĐỐI KHÔNG cho tay hoặc que vào miệng thú cưng (chó mèo không nuốt lưỡi, bạn sẽ bị cắn nát ngón tay theo phản xạ nghiến hàm).',
-          'KHÔNG đè ép ghì chặt thú cưng khi đang co cơ.',
-          'KHÔNG cho ăn hoặc uống nước ngay sau cơn giật.'
+          'KHÔNG tự ý nhỏ thuốc kháng sinh hoặc bôi kem mỡ chứa Corticoid của người vào mắt/tai thú cưng.',
+          'KHÔNG tắm thú cưng bằng xà phòng người có độ pH không phù hợp gây viêm da.'
         ],
-        redFlags: ['Cơn giật kéo dài liên tục trên 3 phút', 'Xuất hiện từ 2 cơn giật trở lên trong 24 giờ', 'Hôn mê sâu không tỉnh lại'],
+        redFlags: ['Vùng da mưng mủ, có mùi hôi', 'Mắt sưng đỏ, chảy mủ đặc', 'Bỏ ăn hoặc sốt nhẹ'],
         nextSteps: [
-          { label: 'Gọi cấp cứu thú y', actionType: 'call' },
-          { label: 'Tìm phòng khám thú y', actionType: 'find_vet' }
+          { label: 'Đặt lịch khám định kỳ', actionType: 'guide' },
+          { label: 'Tra cứu phòng khám thú y', actionType: 'find_vet' }
         ],
-        recommendedQuestions: ['Cơn giật kéo dài bao nhiêu phút?', 'Trước đây bé từng bị co giật chưa?'],
+        recommendedQuestions: ['Triệu chứng xuất hiện bao lâu rồi?', 'Gần đây bé có tiếp xúc với cỏ cây lạ không?'],
         disclaimer: MEDICAL_SAFETY_DISCLAIMER
       };
     }
 
-    // Default Critical/Urgent Triage
+    // 4. Chocolate / Seizures / Mild Digestive -> YELLOW (Urgent / Closely Monitor)
     return {
       severity: 'HIGH',
-      title: 'TÌNH TRẠNG CẦN THĂM KHÁM THÚ Y SỚM',
+      colorCode: 'YELLOW',
+      title: 'MÃ VÀNG: CẦN THEO DÕI SÁT — KHUYẾN NGHỊ LIÊN HỆ TƯ VẤN BÁC SĨ THÚ Y',
       immediateActions: [
         'Quan sát kỹ tinh thần, nhịp thở và màu sắc nướu răng của bé.',
         'Giữ thú cưng ở nơi thoáng mát, yên tĩnh, hạn chế vận động mạnh.',
-        'Ghi nhận lại các biểu hiện bất thường để báo cáo cho bác sĩ.',
-        'Liên hệ cơ sở thú y gần nhất để đặt lịch khám khẩn cấp.'
+        'Ghi nhận lại các biểu hiện bất thường, thời gian và tần suất để báo cáo bác sĩ.',
+        'Liên hệ cơ sở thú y gần nhất để được tư vấn phác đồ xử trí ban đầu.'
       ],
       doNotDo: [
-        'KHÔNG tự ý mua thuốc kháng sinh hoặc thuốc giảm đau của người cho uống.',
-        'KHÔNG áp dụng các mẹo dân gian chưa được bác sĩ thú y chứng nhận.'
+        'KHÔNG tự ý cho uống Paracetamol, Panadol, Aspirin hoặc thuốc hạ sốt của người.',
+        'KHÔNG ép ăn khi bé đang nôn mửa hoặc lờ đờ.'
       ],
-      redFlags: ['Khó thở, thở há mõm', 'Nôn mửa hoặc tiêu chảy ra máu', 'Nướu trắng bệch hoặc tím tái', 'Lờ đờ hôn mê'],
+      redFlags: ['Nôn mửa liên tục trên 3 lần/ngày', 'Đi ngoài ra máu tươi', 'Nướu răng nhợt nhạt hoặc tím tái', 'Sốt cao hoặc hạ thân nhiệt'],
       nextSteps: [
-        { label: 'Gọi bác sĩ thú y', actionType: 'call' },
-        { label: 'Tìm bệnh viện gần nhất', actionType: 'find_vet' }
+        { label: 'Gọi bác sĩ thú y tư vấn', actionType: 'call' },
+        { label: 'Tìm phòng khám thú y gần nhất', actionType: 'find_vet' }
       ],
       recommendedQuestions: ['Triệu chứng xuất hiện từ khi nào?', 'Bé có bỏ ăn hoặc nôn ói không?'],
       disclaimer: MEDICAL_SAFETY_DISCLAIMER
