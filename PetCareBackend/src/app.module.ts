@@ -9,6 +9,7 @@ import { UsersModule } from './users/users.module';
 import { PetsModule } from './pets/pets.module';
 import { LocationsModule } from './locations/locations.module';
 import { MedicationsModule } from './medications/medications.module';
+import { EmergencyModule } from './emergency/emergency.module';
 import { HttpLoggerMiddleware } from './common/middleware/http-logger.middleware';
 
 @Module({
@@ -36,12 +37,13 @@ import { HttpLoggerMiddleware } from './common/middleware/http-logger.middleware
       },
     ]),
 
-    // Core Modules: Auth + Users + Pets + Locations + Medications
+    // Core Modules: Auth + Users + Pets + Locations + Medications + Emergency
     AuthModule,
     UsersModule,
     PetsModule,
     LocationsModule,
     MedicationsModule,
+    EmergencyModule,
   ],
   controllers: [AppController],
   providers: [],

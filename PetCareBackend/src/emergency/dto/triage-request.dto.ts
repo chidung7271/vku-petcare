@@ -46,6 +46,26 @@ export class TriageRequestDto {
   @IsOptional()
   @IsString()
   estimatedAmount?: string;
+
+  @ApiPropertyOptional({ enum: ['RED', 'YELLOW', 'GREEN'], example: 'RED', description: 'Mã màu phân loại cấp cứu dự kiến' })
+  @IsOptional()
+  @IsString()
+  expectedTier?: string;
+
+  @ApiPropertyOptional({ example: 'POISONING', description: 'Nhóm câu hỏi sàng lọc: POISONING, TRAUMA, RESPIRATORY, DIGESTIVE, GENERAL' })
+  @IsOptional()
+  @IsString()
+  category?: string;
+
+  @ApiPropertyOptional({ example: 'SUDDEN', description: 'Tốc độ khởi phát: SUDDEN (đột ngột), GRADUAL (từ từ)' })
+  @IsOptional()
+  @IsString()
+  onsetSpeed?: string;
+
+  @ApiPropertyOptional({ example: 'CONSCIOUS', description: 'Trạng thái tri giác: CONSCIOUS (tỉnh táo), LETHARGIC (lờ đờ), UNCONSCIOUS (hôn mê)' })
+  @IsOptional()
+  @IsString()
+  consciousness?: string;
 }
 
 export class CreateEmergencyCaseDto {

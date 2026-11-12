@@ -16,16 +16,49 @@ describe('EmergencySafetyService', () => {
     expect(service).toBeDefined();
   });
 
-  it('should identify CRITICAL symptoms and escalate immediately', () => {
+  it('should classify critical poisoning symptoms as RED triage tier', () => {
     const assessment = service.evaluateTriage({
       problem: 'Chó bị ngộ độc ăn phải bả chuột',
       symptoms: 'sùi bọt mép, nôn mửa, co giật',
     });
 
+    expect(assessment.colorCode).toBe('RED');
     expect(assessment.severity).toBe('CRITICAL');
     expect(assessment.immediateActions.length).toBeGreaterThan(0);
     expect(assessment.doNotDo.length).toBeGreaterThan(0);
     expect(assessment.redFlags.length).toBeGreaterThan(0);
+  });
+
+  it('should classify choking and respiratory distress as RED triage tier', () => {
+    const assessment = service.evaluateTriage({
+      problem: 'Chó bị hóc dị vật xương',
+      symptoms: 'khó thở, tím tái nướu lợi',
+    });
+
+    expect(assessment.colorCode).toBe('RED');
+    expect(assessment.immediateActions).toContainEqual(
+      expect.stringContaining('thủ thuật Heimlich'),
+    );
+  });
+
+  it('should classify general symptoms or chocolate ingestion as YELLOW triage tier', () => {
+    const assessment = service.evaluateTriage({
+      problem: 'Chó ăn phải một thanh socola sữa nhỏ',
+      symptoms: 'nôn nhẹ 1 lần, vẫn chạy nhảy',
+    });
+
+    expect(assessment.colorCode).toBe('YELLOW');
+    expect(assessment.immediateActions.length).toBeGreaterThan(0);
+  });
+
+  it('should classify minor non-emergency symptom as GREEN triage tier', () => {
+    const assessment = service.evaluateTriage({
+      problem: 'Mèo bị ngứa gãi tai nhiều ngày',
+      symptoms: 'rụng lông nhẹ quanh vành tai',
+    });
+
+    expect(assessment.colorCode).toBe('GREEN');
+    expect(assessment.severity).toBe('LOW');
   });
 
   it('should detect and BLOCK dangerous home remedies like raw eggs, salt, or human paracetamol', () => {
