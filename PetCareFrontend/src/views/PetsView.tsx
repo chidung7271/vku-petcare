@@ -258,13 +258,13 @@ export const PetsView: React.FC<PetsViewProps> = ({
           <WeightChart records={petWeights} />
 
           <div className="action-button-row">
-            <button className="btn-secondary btn-sm" onClick={onOpenAddWeight}>
-              <Scale size={16} />
-              <span>Ghi cân nặng mới</span>
-            </button>
-            <button className="btn-primary btn-sm" onClick={onOpenAddPhoto}>
-              <Camera size={16} />
-              <span>Thêm ảnh phát triển</span>
+            <button 
+              className="btn-primary btn-sm" 
+              onClick={onOpenAddPhoto}
+              style={{ width: '100%', justifyContent: 'center', minHeight: '40px', gap: '8px' }}
+            >
+              <Camera size={18} />
+              <span>+ Ghi nhận mốc phát triển (Cân nặng, ảnh, kỷ niệm)</span>
             </button>
           </div>
 
