@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { CommunityPost, PostType } from '../types';
+import { apiClient } from '../services/apiClient';
 import { 
   Users, 
   Heart, 
@@ -16,7 +17,13 @@ import {
   Trash2, 
   Play, 
   X, 
-  AlertCircle
+  AlertCircle,
+  UploadCloud,
+  Loader2,
+  CheckCircle2,
+  Image as ImageIcon,
+  Film,
+  Upload
 } from 'lucide-react';
 
 interface CommunityViewProps {
@@ -83,6 +90,79 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
   const [formImageUrl, setFormImageUrl] = useState('');
   const [formTags, setFormTags] = useState('');
 
+  // Upload States
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [videoSourceType, setVideoSourceType] = useState<'file' | 'youtube'>('file');
+  const [imageSourceType, setImageSourceType] = useState<'file' | 'link'>('file');
+
+  // Handle Video Upload directly from file
+  const handleUploadVideoFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('video/')) {
+      onShowToast('Vui lòng chọn tệp video hợp lệ (MP4, WebM, QuickTime, v.v.)', 'warning');
+      return;
+    }
+
+    if (file.size > 100 * 1024 * 1024) {
+      onShowToast('Dung lượng video không được vượt quá 100MB', 'warning');
+      return;
+    }
+
+    try {
+      setIsUploadingVideo(true);
+      const res = await apiClient.uploadVideo(file, 'community');
+      const url = res?.data?.url || (res as any)?.url;
+      if (url) {
+        setFormVideoUrl(url);
+        setFormPostType('video');
+        onShowToast('Đã tải video lên máy chủ thành công!', 'success');
+      } else {
+        onShowToast('Không nhận được đường dẫn video sau khi tải lên', 'error');
+      }
+    } catch (err: any) {
+      onShowToast(err.message || 'Lỗi khi tải video lên máy chủ', 'error');
+    } finally {
+      setIsUploadingVideo(false);
+      e.target.value = '';
+    }
+  };
+
+  // Handle Image Upload directly from file
+  const handleUploadImageFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      onShowToast('Vui lòng chọn tệp hình ảnh hợp lệ', 'warning');
+      return;
+    }
+
+    if (file.size > 15 * 1024 * 1024) {
+      onShowToast('Dung lượng hình ảnh không được vượt quá 15MB', 'warning');
+      return;
+    }
+
+    try {
+      setIsUploadingImage(true);
+      const res = await apiClient.uploadImage(file, 'community');
+      const url = res?.data?.url || (res as any)?.url;
+      if (url) {
+        setFormImageUrl(url);
+        onShowToast('Đã tải hình ảnh lên máy chủ thành công!', 'success');
+      } else {
+        onShowToast('Không nhận được đường dẫn ảnh sau khi tải lên', 'error');
+      }
+    } catch (err: any) {
+      onShowToast(err.message || 'Lỗi khi tải ảnh lên máy chủ', 'error');
+    } finally {
+      setIsUploadingImage(false);
+      e.target.value = '';
+    }
+  };
+
   const filteredPosts = useMemo(() => {
     return posts.filter(post => {
       // 1. Format / Type filter
@@ -124,6 +204,8 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
     setFormVideoUrl('');
     setFormImageUrl('');
     setFormTags('');
+    setVideoSourceType('file');
+    setImageSourceType('file');
     setIsModalOpen(true);
   };
 
@@ -137,6 +219,9 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
     setFormVideoUrl(post.videoUrl || '');
     setFormImageUrl(post.imageUrl || (post.images && post.images[0]) || '');
     setFormTags(post.tags ? post.tags.join(', ') : '');
+    const isYt = !!extractYoutubeId(post.videoUrl) || !!post.youtubeId;
+    setVideoSourceType(isYt ? 'youtube' : 'file');
+    setImageSourceType(post.imageUrl?.startsWith('http') && !post.imageUrl.includes('/uploads/') ? 'link' : 'file');
     setIsModalOpen(true);
   };
 
@@ -206,6 +291,41 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
     onDeletePost(id);
     setDeleteConfirmId(null);
     onShowToast('Đã xóa bài viết khỏi cộng đồng', 'info');
+  };
+
+  const handleToggleCommentsDrawer = async (postId: string) => {
+    if (activeCommentsPostId === postId) {
+      setActiveCommentsPostId(null);
+      return;
+    }
+    setActiveCommentsPostId(postId);
+
+    const isMongoId = /^[0-9a-fA-F]{24}$/.test(postId);
+    if (isMongoId) {
+      try {
+        const res = await apiClient.getCommunityComments(postId);
+        const list = Array.isArray(res) ? res : (res?.data || []);
+        if (Array.isArray(list) && list.length > 0) {
+          const mappedComments = list.map((c: any) => ({
+            id: (c._id || c.id).toString(),
+            author: c.authorId?.name || 'Người dùng',
+            avatar: c.authorId?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80',
+            content: c.content,
+            time: c.createdAt ? new Date(c.createdAt).toLocaleDateString('vi-VN') : 'Vừa xong'
+          }));
+          const targetPost = posts.find(p => p.id === postId);
+          if (targetPost) {
+            onUpdatePost({
+              ...targetPost,
+              comments: mappedComments,
+              commentsCount: mappedComments.length
+            });
+          }
+        }
+      } catch (err) {
+        // fallback to existing local comments
+      }
+    }
   };
 
   const handleSendComment = (postId: string) => {
@@ -637,8 +757,8 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                   )}
                 </div>
 
-                {/* Video Embed or Thumbnail Player */}
-                {youtubeId && (
+                {/* Media Section: YouTube or HTML5 Direct Video or Image */}
+                {youtubeId ? (
                   <div style={{ position: 'relative', width: '100%', background: '#000', overflow: 'hidden' }}>
                     {isPlaying ? (
                       <div style={{ position: 'relative', paddingTop: '56.25%', width: '100%' }}>
@@ -701,10 +821,24 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                       </div>
                     )}
                   </div>
-                )}
-
-                {/* Regular Image if not a video or no youtubeId */}
-                {!youtubeId && post.imageUrl && (
+                ) : post.videoUrl ? (
+                  <div style={{ position: 'relative', width: '100%', background: '#090d16', overflow: 'hidden' }}>
+                    <video
+                      controls
+                      playsInline
+                      preload="metadata"
+                      poster={post.imageUrl}
+                      src={post.videoUrl}
+                      style={{
+                        width: '100%',
+                        maxHeight: '440px',
+                        display: 'block',
+                        objectFit: 'contain',
+                        background: '#090d16'
+                      }}
+                    />
+                  </div>
+                ) : post.imageUrl ? (
                   <div style={{ maxHeight: '380px', overflow: 'hidden', background: 'rgba(0,0,0,0.03)' }}>
                     <img 
                       src={post.imageUrl} 
@@ -713,7 +847,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                       loading="lazy"
                     />
                   </div>
-                )}
+                ) : null}
 
                 {/* Post Footer / Actions */}
                 <div style={{
@@ -744,7 +878,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                     </button>
 
                     <button
-                      onClick={() => setActiveCommentsPostId(activeCommentsPostId === post.id ? null : post.id)}
+                      onClick={() => handleToggleCommentsDrawer(post.id)}
                       style={{
                         background: 'none',
                         border: 'none',
@@ -870,18 +1004,47 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
           <div 
             className="modal-sheet animate-fade-in" 
             onClick={e => e.stopPropagation()}
-            style={{ maxHeight: '90vh', overflow: 'hidden' }}
+            style={{ 
+              maxWidth: '560px',
+              height: '88vh',
+              maxHeight: '92vh',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden'
+            }}
           >
-            {/* Modal Header */}
-            <div className="modal-header">
+            {/* Modal Header (Fixed at top) */}
+            <div className="modal-header" style={{ flexShrink: 0 }}>
               <h3 className="modal-title">
                 {editingPost ? '✏️ Chỉnh Sửa Bài Viết / Video' : '✨ Tạo Bài Viết / Video Mới'}
               </h3>
               <button className="modal-close-btn" onClick={() => setIsModalOpen(false)}>✕</button>
             </div>
 
-            {/* Modal Body Form */}
-            <form onSubmit={handleSavePost} className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {/* Modal Form with separate scrollable body and fixed footer */}
+            <form 
+              onSubmit={handleSavePost} 
+              style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                flex: 1, 
+                minHeight: 0, 
+                overflow: 'hidden' 
+              }}
+            >
+              {/* Scrollable Form Body */}
+              <div 
+                className="modal-body" 
+                style={{ 
+                  flex: 1, 
+                  overflowY: 'auto', 
+                  WebkitOverflowScrolling: 'touch',
+                  padding: '1.25rem',
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: '1rem' 
+                }}
+              >
               {/* Post Type selector */}
               <div>
                 <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.4rem', color: '#1e293b' }}>
@@ -1000,57 +1163,308 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                 </select>
               </div>
 
-              {/* Video URL (if video format or optional) */}
+              {/* Video Section (Upload direct file or YouTube link) */}
               {(formPostType === 'video' || formVideoUrl) && (
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.4rem', color: '#1e293b' }}>
-                    Liên kết Video YouTube
-                  </label>
-                  <input
-                    type="url"
-                    placeholder="https://www.youtube.com/watch?v=... hoặc https://youtu.be/..."
-                    value={formVideoUrl}
-                    onChange={(e) => setFormVideoUrl(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '0.7rem 0.9rem',
-                      borderRadius: '0.6rem',
-                      border: '1.5px solid #cbd5e1',
-                      background: '#f8fafc',
-                      color: '#0f172a',
-                      fontSize: '0.9rem',
-                      outline: 'none'
-                    }}
-                  />
-                  {formVideoUrl && extractYoutubeId(formVideoUrl) && (
-                    <div style={{ marginTop: '0.4rem', fontSize: '0.78rem', color: '#059669', fontWeight: 600 }}>
-                      ✓ Đã nhận diện ID: <strong>{extractYoutubeId(formVideoUrl)}</strong> (Tự động phát trong app)
+                <div style={{
+                  background: '#f8fafc',
+                  border: '1.5px solid #e2e8f0',
+                  borderRadius: '0.75rem',
+                  padding: '0.85rem'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
+                    <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <Video size={16} color="#dc2626" /> Video cho bài đăng
+                    </label>
+
+                    {/* Source Tab Toggle */}
+                    <div style={{ display: 'inline-flex', background: '#e2e8f0', borderRadius: '0.4rem', padding: '2px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setVideoSourceType('file')}
+                        style={{
+                          padding: '0.25rem 0.55rem',
+                          fontSize: '0.72rem',
+                          fontWeight: 700,
+                          borderRadius: '0.3rem',
+                          border: 'none',
+                          background: videoSourceType === 'file' ? '#ffffff' : 'transparent',
+                          color: videoSourceType === 'file' ? '#0f766e' : '#64748b',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        📁 Tải video từ máy
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setVideoSourceType('youtube')}
+                        style={{
+                          padding: '0.25rem 0.55rem',
+                          fontSize: '0.72rem',
+                          fontWeight: 700,
+                          borderRadius: '0.3rem',
+                          border: 'none',
+                          background: videoSourceType === 'youtube' ? '#ffffff' : 'transparent',
+                          color: videoSourceType === 'youtube' ? '#dc2626' : '#64748b',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        🔗 Link YouTube
+                      </button>
+                    </div>
+                  </div>
+
+                  {videoSourceType === 'file' ? (
+                    <div>
+                      {isUploadingVideo ? (
+                        <div style={{
+                          padding: '1.5rem',
+                          textAlign: 'center',
+                          background: '#ffffff',
+                          borderRadius: '0.5rem',
+                          border: '2px dashed #149a8c',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: '0.5rem'
+                        }}>
+                          <Loader2 size={28} className="animate-spin" color="#149a8c" />
+                          <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#0f766e' }}>
+                            Đang tải video lên máy chủ... (tối đa 100MB)
+                          </span>
+                        </div>
+                      ) : formVideoUrl && !extractYoutubeId(formVideoUrl) ? (
+                        <div style={{ background: '#ffffff', borderRadius: '0.5rem', padding: '0.6rem', border: '1px solid #cbd5e1' }}>
+                          <video 
+                            src={formVideoUrl} 
+                            controls 
+                            style={{ width: '100%', maxHeight: '200px', borderRadius: '0.4rem', background: '#000', display: 'block' }} 
+                          />
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.5rem' }}>
+                            <span style={{ fontSize: '0.75rem', color: '#059669', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                              <CheckCircle2 size={14} /> Video đã sẵn sàng phát
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setFormVideoUrl('')}
+                              style={{
+                                background: '#fee2e2',
+                                color: '#b91c1c',
+                                border: 'none',
+                                borderRadius: '0.35rem',
+                                padding: '0.25rem 0.6rem',
+                                fontSize: '0.75rem',
+                                fontWeight: 700,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Gỡ video
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <label style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: '1.25rem 1rem',
+                          background: '#ffffff',
+                          border: '2px dashed #94a3b8',
+                          borderRadius: '0.5rem',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          textAlign: 'center'
+                        }}>
+                          <UploadCloud size={28} color="#0f766e" style={{ marginBottom: '0.4rem' }} />
+                          <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f766e' }}>
+                            Chọn video từ máy để tải lên
+                          </span>
+                          <span style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.15rem' }}>
+                            Hỗ trợ MP4, WebM, MOV (Tối đa 100MB)
+                          </span>
+                          <input
+                            type="file"
+                            accept="video/mp4,video/webm,video/quicktime,video/*"
+                            onChange={handleUploadVideoFile}
+                            style={{ display: 'none' }}
+                          />
+                        </label>
+                      )}
+                    </div>
+                  ) : (
+                    <div>
+                      <input
+                        type="url"
+                        placeholder="https://www.youtube.com/watch?v=... hoặc https://youtu.be/..."
+                        value={formVideoUrl}
+                        onChange={(e) => setFormVideoUrl(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '0.7rem 0.9rem',
+                          borderRadius: '0.6rem',
+                          border: '1.5px solid #cbd5e1',
+                          background: '#ffffff',
+                          color: '#0f172a',
+                          fontSize: '0.9rem',
+                          outline: 'none'
+                        }}
+                      />
+                      {formVideoUrl && extractYoutubeId(formVideoUrl) && (
+                        <div style={{ marginTop: '0.4rem', fontSize: '0.78rem', color: '#059669', fontWeight: 600 }}>
+                          ✓ Đã nhận diện ID: <strong>{extractYoutubeId(formVideoUrl)}</strong> (Tự động phát trong app)
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Image URL */}
-              <div>
-                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.4rem', color: '#1e293b' }}>
-                  Hình ảnh minh họa (Tùy chọn)
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://images.unsplash.com/..."
-                  value={formImageUrl}
-                  onChange={(e) => setFormImageUrl(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '0.7rem 0.9rem',
-                    borderRadius: '0.6rem',
-                    border: '1.5px solid #cbd5e1',
-                    background: '#f8fafc',
-                    color: '#0f172a',
-                    fontSize: '0.9rem',
-                    outline: 'none'
-                  }}
-                />
+              {/* Image Section (Upload direct file or paste URL) */}
+              <div style={{
+                background: '#f8fafc',
+                border: '1.5px solid #e2e8f0',
+                borderRadius: '0.75rem',
+                padding: '0.85rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <ImageIcon size={16} color="#0f766e" /> Hình ảnh minh họa (Tùy chọn)
+                  </label>
+
+                  {/* Image Tab Toggle */}
+                  <div style={{ display: 'inline-flex', background: '#e2e8f0', borderRadius: '0.4rem', padding: '2px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setImageSourceType('file')}
+                      style={{
+                        padding: '0.25rem 0.55rem',
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        borderRadius: '0.3rem',
+                        border: 'none',
+                        background: imageSourceType === 'file' ? '#ffffff' : 'transparent',
+                        color: imageSourceType === 'file' ? '#0f766e' : '#64748b',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      📁 Tải ảnh từ máy
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setImageSourceType('link')}
+                      style={{
+                        padding: '0.25rem 0.55rem',
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        borderRadius: '0.3rem',
+                        border: 'none',
+                        background: imageSourceType === 'link' ? '#ffffff' : 'transparent',
+                        color: imageSourceType === 'link' ? '#0f766e' : '#64748b',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      🔗 Link ảnh
+                    </button>
+                  </div>
+                </div>
+
+                {imageSourceType === 'file' ? (
+                  <div>
+                    {isUploadingImage ? (
+                      <div style={{
+                        padding: '1rem',
+                        textAlign: 'center',
+                        background: '#ffffff',
+                        borderRadius: '0.5rem',
+                        border: '2px dashed #149a8c',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem'
+                      }}>
+                        <Loader2 size={20} className="animate-spin" color="#149a8c" />
+                        <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#0f766e' }}>
+                          Đang tải ảnh lên máy chủ... (tối đa 15MB)
+                        </span>
+                      </div>
+                    ) : formImageUrl ? (
+                      <div style={{ background: '#ffffff', borderRadius: '0.5rem', padding: '0.5rem', border: '1px solid #cbd5e1' }}>
+                        <img 
+                          src={formImageUrl} 
+                          alt="Minh họa" 
+                          style={{ width: '100%', maxHeight: '160px', objectFit: 'cover', borderRadius: '0.4rem', display: 'block' }} 
+                        />
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.4rem' }}>
+                          <span style={{ fontSize: '0.75rem', color: '#059669', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                            <CheckCircle2 size={13} /> Đã chọn ảnh
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setFormImageUrl('')}
+                            style={{
+                              background: '#fee2e2',
+                              color: '#b91c1c',
+                              border: 'none',
+                              borderRadius: '0.35rem',
+                              padding: '0.2rem 0.5rem',
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Xóa ảnh
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <label style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '1rem',
+                        background: '#ffffff',
+                        border: '2px dashed #94a3b8',
+                        borderRadius: '0.5rem',
+                        cursor: 'pointer',
+                        textAlign: 'center'
+                      }}>
+                        <Upload size={22} color="#0f766e" style={{ marginBottom: '0.3rem' }} />
+                        <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0f766e' }}>
+                          Chọn ảnh từ thiết bị
+                        </span>
+                        <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                          JPG, PNG, WebP (Tối đa 15MB)
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleUploadImageFile}
+                          style={{ display: 'none' }}
+                        />
+                      </label>
+                    )}
+                  </div>
+                ) : (
+                  <div>
+                    <input
+                      type="url"
+                      placeholder="https://images.unsplash.com/..."
+                      value={formImageUrl}
+                      onChange={(e) => setFormImageUrl(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '0.7rem 0.9rem',
+                        borderRadius: '0.6rem',
+                        border: '1.5px solid #cbd5e1',
+                        background: '#ffffff',
+                        color: '#0f172a',
+                        fontSize: '0.9rem',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Content */}
@@ -1101,8 +1515,21 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                 />
               </div>
 
-              {/* Submit Button */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid #e2e8f0' }}>
+              </div>
+
+              {/* Submit Button Footer (Pinned at bottom, ALWAYS visible!) */}
+              <div style={{ 
+                flexShrink: 0, 
+                display: 'flex', 
+                justifyContent: 'flex-end', 
+                alignItems: 'center',
+                gap: '0.75rem', 
+                padding: '0.85rem 1.25rem', 
+                background: '#ffffff', 
+                borderTop: '1px solid #e2e8f0',
+                boxShadow: '0 -2px 10px rgba(0,0,0,0.04)',
+                zIndex: 10
+              }}>
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
@@ -1121,7 +1548,7 @@ export const CommunityView: React.FC<CommunityViewProps> = ({
                 <button
                   type="submit"
                   style={{
-                    padding: '0.65rem 1.5rem',
+                    padding: '0.65rem 1.6rem',
                     borderRadius: '0.6rem',
                     border: 'none',
                     background: '#149a8c',
