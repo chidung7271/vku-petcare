@@ -68,9 +68,10 @@ export const PetsView: React.FC<PetsViewProps> = ({
     );
   }
 
-  const petPhotos = photos.filter(p => p.petId === activePet.id);
-  const petWeights = weightRecords.filter(w => w.petId === activePet.id);
-  const petReminders = reminders.filter(r => r.petId === activePet.id);
+  const activeId = activePet ? (activePet.id || (activePet as any)._id)?.toString() : '';
+  const petPhotos = photos.filter(p => (p.petId || (p as any)._id)?.toString() === activeId);
+  const petWeights = weightRecords.filter(w => (w.petId || (w as any)._id)?.toString() === activeId);
+  const petReminders = reminders.filter(r => (r.petId || (r as any)._id)?.toString() === activeId);
 
   return (
     <div className="pets-container animate-fade-in">
@@ -299,28 +300,35 @@ export const PetsView: React.FC<PetsViewProps> = ({
 
           {/* Growth Timeline: 01/01 -> 01/02 -> 01/03 */}
           <div className="card timeline-card">
-            <h4 className="card-section-title">Dòng thời gian trưởng thành</h4>
-            <div className="growth-timeline">
-              {petPhotos.map((photo, idx) => (
-                <div key={photo.id} className="timeline-node">
-                  <div className="timeline-marker">
-                    <div className="marker-dot" />
-                    {idx < petPhotos.length - 1 && <div className="marker-line" />}
-                  </div>
-
-                  <div className="timeline-body">
-                    <div className="timeline-date-chip">📅 {photo.date}</div>
-                    <div className="timeline-img-box">
-                      <img src={photo.photoUrl} alt={photo.note || 'Growth'} className="timeline-img" />
+            <h4 className="card-section-title">Dòng thời gian trưởng thành ({petPhotos.length})</h4>
+            {petPhotos.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '24px 16px', color: 'var(--text-muted)' }}>
+                <p style={{ margin: '0 0 6px 0', fontSize: '14px' }}>Chưa có hình ảnh nào trong dòng thời gian trưởng thành.</p>
+                <p style={{ margin: 0, fontSize: '13px' }}>Bấm nút <strong>"+ Ghi nhận mốc phát triển"</strong> ở trên để đăng ảnh và cập nhật cân nặng cho bé!</p>
+              </div>
+            ) : (
+              <div className="growth-timeline">
+                {petPhotos.map((photo, idx) => (
+                  <div key={photo.id || idx} className="timeline-node">
+                    <div className="timeline-marker">
+                      <div className="marker-dot" />
+                      {idx < petPhotos.length - 1 && <div className="marker-line" />}
                     </div>
-                    {photo.note && <p className="timeline-note-text">"{photo.note}"</p>}
-                    {photo.weightAtTime && (
-                      <span className="timeline-weight-tag">⚖️ Cân nặng lúc này: {photo.weightAtTime} kg</span>
-                    )}
+
+                    <div className="timeline-body">
+                      <div className="timeline-date-chip">📅 {photo.date}</div>
+                      <div className="timeline-img-box">
+                        <img src={photo.photoUrl} alt={photo.note || 'Growth'} className="timeline-img" />
+                      </div>
+                      {photo.note && <p className="timeline-note-text">"{photo.note}"</p>}
+                      {photo.weightAtTime && (
+                        <span className="timeline-weight-tag">⚖️ Cân nặng lúc này: {photo.weightAtTime} kg</span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Veterinary Disclaimer Alert */}

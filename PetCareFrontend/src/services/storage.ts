@@ -367,7 +367,14 @@ export const storage = {
       return INITIAL_PETS;
     }
     try {
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return parsed.map((p: any) => ({
+          ...p,
+          id: (p.id || p._id || '').toString(),
+        }));
+      }
+      return INITIAL_PETS;
     } catch {
       return INITIAL_PETS;
     }
@@ -425,8 +432,9 @@ export const storage = {
     if (!raw) {
       localStorage.setItem(STORAGE_KEYS.WEIGHT_RECORDS, JSON.stringify(INITIAL_WEIGHT_RECORDS));
     }
+    const targetId = petId?.toString() || '';
     return list
-      .filter(w => w.petId === petId)
+      .filter(w => (w.petId || (w as any)._id)?.toString() === targetId)
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   },
 
@@ -451,8 +459,9 @@ export const storage = {
     if (!raw) {
       localStorage.setItem(STORAGE_KEYS.PHOTOS, JSON.stringify(INITIAL_PHOTOS));
     }
+    const targetId = petId?.toString() || '';
     return list
-      .filter(p => p.petId === petId)
+      .filter(p => (p.petId || (p as any)._id)?.toString() === targetId)
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   },
 
