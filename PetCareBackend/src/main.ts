@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import * as path from 'path';
+import { json, urlencoded } from 'express';
 
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
@@ -17,6 +18,10 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT', 3000);
   const corsOrigin = configService.get<string>('CORS_ORIGIN', '*');
+
+  // Increase payload limit for base64 photo uploads (e.g. milestones, avatars, pet records)
+  app.use(json({ limit: '50mb' }));
+  app.use(urlencoded({ extended: true, limit: '50mb' }));
 
   // Security headers
   app.use(
@@ -59,7 +64,8 @@ async function bootstrap() {
   const swaggerConfig = new DocumentBuilder()
     .setTitle('PetCare Assistant API')
     .setDescription(
-      'API Backend cho ứng dụng PetCare Assistant - [WBS 4.1.2] Xây dựng chức năng Xác thực (Login / Register / JWT).',
+      'API Backend Production-Ready cho ứng dụng Trợ Lý Chăm Sóc Thú Cưng PetCare PWA. ' +
+        'Bao gồm quản lý hồ sơ thú cưng, sổ y bạ số, theo dõi tăng trưởng, cảnh báo khẩn cấp, AI chẩn đoán, bản đồ phòng khám, tìm thú cưng thất lạc và mạng xã hội thú cưng.',
     )
     .setVersion('1.0.0')
     .addBearerAuth(
@@ -73,11 +79,24 @@ async function bootstrap() {
       },
       'JWT-auth',
     )
-    .addTag('health', 'Kiểm tra trạng thái máy chủ')
-    .addTag('Authentication', 'Đăng ký, Đăng nhập, Token Refresh, Đăng xuất')
+    .addTag('auth', 'Đăng ký, Đăng nhập, Token Refresh, Đăng xuất')
     .addTag('users', 'Quản lý thông tin tài khoản người dùng')
-    .addTag('pets', 'Quản lý hồ sơ thú cưng')
-    .addTag('locations', 'Danh bạ phòng khám và trạm xá thú y 24/7')
+    .addTag('pets', 'Quản lý hồ sơ thú cưng & xuất sổ y bạ')
+    .addTag('growth', 'Nhật ký cân nặng & album ảnh timeline trưởng thành')
+    .addTag('health-records', 'Sổ y bạ điện tử (tiêm phòng, khám bệnh, triệt sản, phẫu thuật, xét nghiệm)')
+    .addTag('vaccinations', 'Quản lý lịch tiêm chủng & sắp xếp lịch đến hẹn')
+    .addTag('medications', 'Theo dõi đơn thuốc, liều dùng và tiến độ uống thuốc')
+    .addTag('reminders', 'Lịch nhắc việc tự động & lặp lại định kỳ')
+    .addTag('emergency', 'Xử lý tình huống khẩn cấp, sơ cứu & an toàn thú y nghiêm ngặt')
+    .addTag('ai', 'Trợ lý AI sức khỏe thú cưng đa nhà cung cấp (Mock, Gemini, OpenAI)')
+    .addTag('locations', 'Tra cứu phòng khám thú y 24/7 & cửa hàng thú cưng gần nhất')
+    .addTag('lost-pets', 'Báo mất/tìm thấy thú cưng, tạo poster & mã QR tìm kiếm')
+    .addTag('knowledge', 'Kho cẩm nang chăm sóc thú cưng & xử lý vấn đề thường gặp')
+    .addTag('videos', 'Video hướng dẫn chăm sóc, sơ cứu và huấn luyện')
+    .addTag('community', 'Mạng xã hội người yêu thú cưng (Bài viết, Thả tim, Bình luận)')
+    .addTag('notifications', 'Hệ thống thông báo đẩy và nhắc việc trong ứng dụng')
+    .addTag('uploads', 'Tải lên hình ảnh và quản lý tệp media')
+    .addTag('health', 'Kiểm tra trạng thái máy chủ')
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
