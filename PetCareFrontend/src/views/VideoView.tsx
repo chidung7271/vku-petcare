@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CareVideo } from '../types';
 import { CARE_VIDEOS } from '../services/contentData';
+import { apiClient } from '../services/apiClient';
 import { 
   Play, 
   Clock, 
@@ -20,13 +21,48 @@ const VIDEO_CATEGORIES = [
   'Đánh răng'
 ];
 
+function extractYoutubeId(url?: string): string | undefined {
+  if (!url) return undefined;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return match && match[2].length === 11 ? match[2] : undefined;
+}
+
 export const VideoView: React.FC = () => {
   const [selectedCat, setSelectedCat] = useState('Tất cả');
   const [activeVideo, setActiveVideo] = useState<CareVideo | null>(null);
+  const [videosList, setVideosList] = useState<CareVideo[]>(CARE_VIDEOS);
 
-  const filteredVideos = CARE_VIDEOS.filter(v => 
+  useEffect(() => {
+    const fetchVideos = async () => {
+      try {
+        const res = await apiClient.getVideos();
+        const items = Array.isArray(res) ? res : (res?.data || []);
+        if (items && items.length > 0) {
+          const mapped: CareVideo[] = items.map((v: any) => ({
+            id: (v._id || v.id).toString(),
+            title: v.title,
+            duration: v.duration || '03:00',
+            category: v.category || 'Chăm sóc',
+            description: v.description || '',
+            thumbnailUrl: v.thumbnailUrl || 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=600&q=80',
+            videoUrl: v.videoUrl,
+            level: v.level || 'Cơ bản',
+          }));
+          setVideosList(mapped);
+        }
+      } catch (err: any) {
+        console.warn('Backend getVideos failed, using local care videos:', err?.message);
+      }
+    };
+    fetchVideos();
+  }, []);
+
+  const filteredVideos = videosList.filter(v => 
     selectedCat === 'Tất cả' || v.category === selectedCat
   );
+
+  const activeYoutubeId = activeVideo ? extractYoutubeId(activeVideo.videoUrl) : undefined;
 
   return (
     <div className="video-container animate-fade-in">
@@ -92,15 +128,30 @@ export const VideoView: React.FC = () => {
             </div>
 
             <div className="modal-body video-player-body">
-              {/* Simulated Responsive Video Player */}
-              <div className="video-player-box">
-                <iframe
-                  src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=0"
-                  title={activeVideo.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="embed-iframe"
-                />
+              {/* Responsive Video Player (HTML5 or YouTube) */}
+              <div className="video-player-box" style={{ background: '#000', borderRadius: '0.75rem', overflow: 'hidden' }}>
+                {activeYoutubeId ? (
+                  <iframe
+                    src={`https://www.youtube-nocookie.com/embed/${activeYoutubeId}?autoplay=1&rel=0`}
+                    title={activeVideo.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="embed-iframe"
+                  />
+                ) : activeVideo.videoUrl ? (
+                  <video
+                    src={activeVideo.videoUrl}
+                    poster={activeVideo.thumbnailUrl}
+                    controls
+                    autoPlay
+                    playsInline
+                    style={{ width: '100%', height: '100%', maxHeight: '420px', objectFit: 'contain', background: '#000', display: 'block' }}
+                  />
+                ) : (
+                  <div style={{ padding: '2rem', textAlign: 'center', color: '#fff' }}>
+                    Chưa có liên kết phát video
+                  </div>
+                )}
               </div>
 
               <div className="player-details">
