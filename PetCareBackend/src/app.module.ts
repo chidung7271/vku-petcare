@@ -15,6 +15,7 @@ import { GrowthModule } from './growth/growth.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { CommunityModule } from './community/community.module';
 import { LostPetsModule } from './lost-pets/lost-pets.module';
+import { UploadsModule } from './uploads/uploads.module';
 import { HttpLoggerMiddleware } from './common/middleware/http-logger.middleware';
 
 @Module({
@@ -42,7 +43,7 @@ import { HttpLoggerMiddleware } from './common/middleware/http-logger.middleware
       },
     ]),
 
-    // Core Modules: Auth + Users + Pets + Locations + Medications + Emergency + AI + Growth + Notifications + Community + LostPets
+    // Core Modules: Auth + Users + Pets + Locations + Medications + Emergency + AI + Growth + Notifications + Community + LostPets + Uploads
     AuthModule,
     UsersModule,
     PetsModule,
@@ -54,6 +55,7 @@ import { HttpLoggerMiddleware } from './common/middleware/http-logger.middleware
     NotificationsModule,
     CommunityModule,
     LostPetsModule,
+    UploadsModule,
   ],
   controllers: [AppController],
   providers: [],
